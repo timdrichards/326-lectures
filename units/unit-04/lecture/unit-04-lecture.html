@@ -224,33 +224,43 @@
 <section>
 <h2><span class="accent">flex-wrap</span> is the whole trick</h2>
 <p class="subtitle">Flexbox alone puts everything in one row.</p><pre><code class="language-css" data-trim>
-.entries {
+ul {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
+  list-style: none;
+  padding: 0;
 }
 </code></pre>
 </section>
 
 <section>
 <h2>Padding, border, <span class="accent">and box-sizing</span></h2>
-<div class="left"><p>Padding and a border both add to an element's visible size, unless <code>box-sizing: border-box</code> says otherwise.</p></div><pre><code class="language-css" data-trim>
-.card {
-  padding: 1rem;
-  border: 1px solid var(--color-border);
+<div class="left"><p>Padding and a border both add to an element's width, unless you say otherwise.</p></div><pre><code class="language-css" data-trim>
+* {
   box-sizing: border-box;
+}
+
+li {
+  flex: 1 1 200px;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
 }
 </code></pre>
 </section>
 
 <section>
 <h2>One variable, <span class="accent">used everywhere</span></h2>
-<p class="subtitle">A CSS custom property defined once, referenced everywhere.</p><pre><code class="language-css" data-trim>
+<p class="subtitle">A custom property defined once, referenced everywhere.</p><pre><code class="language-css" data-trim>
 :root {
   --color-border: #ccc;
+  --spacing-md: 1rem;
 }
 
-.card { border-color: var(--color-border); }
+li {
+  border: 1px solid var(--color-border);
+  padding: var(--spacing-md);
+}
 </code></pre>
 </section>
 
