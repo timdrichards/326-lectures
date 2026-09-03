@@ -243,10 +243,12 @@ app.get(&#x27;/entries&#x27;, (req, res) =&gt; {
 
 <section>
 <h2>One <span class="accent">layout</span>, every page</h2>
-<p class="subtitle">views/layout.ejs wraps every page in the shared doctype, head, header, and footer.</p><pre><code class="language-html" data-trim>
-&lt;%- include(&#x27;layout&#x27;, { body: `
-  &lt;h1&gt;Entries&lt;/h1&gt;
-` }) %&gt;
+<p class="subtitle">views/layout.ejs holds the shared doctype, head, header, and footer. Each page supplies only what goes inside.</p><pre><code class="language-html" data-trim>
+&lt;main&gt;
+  &lt;%- body %&gt;
+&lt;/main&gt;
+</code></pre><pre><code class="language-javascript" data-trim>
+res.render(&#x27;layout&#x27;, { title: &#x27;Entries&#x27;, body: inner });
 </code></pre>
 </section>
 
@@ -302,7 +304,7 @@ data-placeholder="click to type"></span></p>
 <section>
 <div class="bars"><div></div><div></div><div></div></div>
 <h2>Looking Ahead</h2>
-<p>Lab 02, Branching and the Pull Request. The branch-and-PR workflow is how every homework and every team sprint contribution gets submitted from here on; Lab 02 builds the habit now, before the stakes are real.</p>
+<p>Lab 02, Branching and the Pull Request. This is the workflow your team will use for every sprint and for the final project, where changes land on <span class='accent'>main</span> through a pull request. Lab 02 builds the habit now, before the stakes are real.</p>
 </section>
 
 </div>
