@@ -1,0 +1,375 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 05: JSON, Data's Native Language -- COMPSCI 326</title>
+
+<!--
+  Live, in-person lecture deck. Distinct from course/units/unit-NN/slides/,
+  which holds the async recorded overview (.pptx). This deck is presented in the
+  room and assumes the unit has already been read; see lecture-day-template.md.
+
+  DO NOT HAND-EDIT A GENERATED DECK. Edit the UNITS list in build_lectures.py and
+  re-run it, or the next rebuild silently discards the change.
+
+  TYPOGRAPHY, and why it is set explicitly:
+  reveal.js ships layout in reveal.css but all type in its *theme* CSS, which
+  this deck deliberately does not load (it has its own theme). Without a theme,
+  `.reveal` inherits the browser's 16px default on a 960x700 virtual canvas, and
+  body text projected at roughly 23px, about a third of legible. Measured, not
+  assumed. `--base` below restores a projection-appropriate scale; reveal's own
+  default is 42px and 34px here buys back a little content density. Every
+  component sizes in `em` off that, so changing one number rescales the deck.
+-->
+
+<link rel="stylesheet" href="../../../vendor/reveal/dist/reveal.css">
+<link rel="stylesheet" href="../../../vendor/reveal/plugin/highlight/monokai.css">
+
+<style>
+  /* ===================== CHROME: theme, do not edit per-lecture ===================== */
+  :root{
+    --dark:      #1A1B26;
+    --mid:       #3D59A1;
+    --midLight:  #A9B8E8;
+    --accent:    #9ECE6A;
+    --lightBg:   #F4F6FB;
+    --card:      #FFFFFF;
+    --textDark:  #1A1B26;
+    --muted:     #5C6B7A;
+    --white:     #FFFFFF;
+    --codeBg:    #232430;
+    --codeText:  #E4E7EF;
+    --red:       #F7768E;
+    --amber:     #E0AF68;
+    --green:     #9ECE6A;
+    --headFont:  Consolas, "SF Mono", Menlo, Monaco, monospace;
+    --bodyFont:  Calibri, "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+    --base:      34px;   /* projection base; see the note above before changing */
+  }
+
+  .reveal{ font-family: var(--bodyFont); font-size: var(--base); }
+  .reveal h1,.reveal h2,.reveal h3{ font-family: var(--headFont); font-weight:700;
+    letter-spacing:-0.01em; line-height:1.15; margin:0 0 0.5em; text-transform:none; }
+  .reveal h1{ font-size: 2.05em; }
+  .reveal h2{ font-size: 1.5em; }
+  .reveal h3{ font-size: 1.1em; }
+  .reveal p, .reveal li{ font-size: 1em; line-height: 1.45; }
+  /* Lists are NEVER centred. reveal centres all slide content, which leaves
+     ragged-both-sides bullets that read as a layout bug. Centre the list BLOCK,
+     left-align the text inside it. */
+  .reveal ul, .reveal ol{ display:block; text-align:left;
+    max-width:26em; margin:0.4em auto; padding-left:1.1em; }
+  .reveal li{ margin-bottom:0.45em; text-align:left; }
+  .reveal .left{ text-align:left; max-width:26em; margin-left:auto; margin-right:auto; }
+
+  /* Link out to an activity handout. Big enough to read from the back row,
+     since students type it or scan it rather than click it. */
+  .biglink{ display:inline-block; font-family:var(--headFont); font-weight:700;
+    background:var(--mid); color:var(--white); text-decoration:none;
+    border-radius:0.35em; padding:0.4em 0.9em; margin-top:0.5em; font-size:0.9em; }
+  .biglink:hover{ background:var(--accent); color:var(--dark); }
+  .biglink .url{ display:block; font-size:0.62em; font-weight:400; opacity:0.85;
+    margin-top:0.15em; }
+  .reveal .subtitle{ font-size: 0.92em; }
+  .reveal .small{ font-size: 0.78em; }
+  .reveal .tiny{ font-size: 0.62em; line-height: 1.35; }
+
+  /*
+    Dark is the default for every slide. reveal paints the background on a
+    dedicated .slide-background div, NOT on <section>, which only fills its own
+    content box; an earlier draft set `background` on section and every slide
+    rendered as a short coloured band. Styling .slide-background makes dark the
+    true default: an unmarked slide falls through to this rule, and one that
+    sets data-background-color gets an inline style that overrides it naturally.
+  */
+  .reveal .slide-background{ background-color: var(--dark); }
+  .reveal .slides section{ color: var(--white); }
+  .reveal .slides section h1,
+  .reveal .slides section h2,
+  .reveal .slides section h3{ color: var(--white); }
+  .reveal .slides section .subtitle{ color: var(--midLight); }
+  .reveal .slides section .accent{ color: var(--accent); }
+
+  /* Light variant: only slides explicitly marked class="light" */
+  .reveal .slides section.light{ color: var(--textDark); }
+  .reveal .slides section.light h1,
+  .reveal .slides section.light h2,
+  .reveal .slides section.light h3{ color: var(--textDark); }
+  .reveal .slides section.light .subtitle,
+  .reveal .slides section.light .muted{ color: var(--muted); }
+
+  /* Motif: three stacked rounded bars */
+  .bars{ display:flex; flex-direction:column; gap:0.14em; width:1.9em; margin:0 auto 0.7em; }
+  .bars div{ height:0.34em; border-radius:0.17em; }
+  .bars div:nth-child(1){ background: var(--accent); width:100%; }
+  .bars div:nth-child(2){ background: var(--mid);      width:72%; }
+  .bars div:nth-child(3){ background: var(--midLight); width:46%; }
+
+  /* Agenda phase cards */
+  .phase-grid{ display:grid; grid-template-columns: repeat(4,1fr); gap:0.7em; margin-top:1em; }
+  .phase-card{ background:var(--card); border-radius:0.4em; padding:0.7em 0.6em;
+    box-shadow:0 2px 10px rgba(26,27,38,0.08); text-align:left; }
+  .phase-card .num{ font-family:var(--headFont); color:var(--mid); font-size:1.1em; font-weight:700; }
+  .phase-card .time{ font-family:var(--headFont); color:var(--accent2,#2F7D32); font-size:0.72em; margin:0.1em 0 0.3em; }
+  .phase-card .label{ font-size:0.74em; line-height:1.3; color:var(--textDark); }
+
+  /* Code / terminal card */
+  .terminal-card{ background:var(--codeBg); color:var(--codeText); border-radius:0.35em;
+    padding:0.7em 0.9em; text-align:left; font-family:var(--headFont);
+    font-size:0.82em; line-height:1.5; }
+  .terminal-card .dots{ display:flex; gap:0.25em; margin-bottom:0.5em; }
+  .terminal-card .dots span{ width:0.42em; height:0.42em; border-radius:50%; display:inline-block; }
+
+  /* reveal's highlight plugin renders into pre>code; size it for the room.
+     text-align MUST be reset: reveal centres slide content, which silently
+     centres every line of a code block and destroys the indentation. It looks
+     fine in source and wrong on screen, so it is only ever caught by looking. */
+  .reveal pre{ width:100%; box-shadow:none; margin:0.5em 0; font-size:0.72em;
+    text-align:left; }
+  .reveal pre code{ padding:0.9em 1.1em; border-radius:0.35em; max-height:none;
+    line-height:1.45; font-family:var(--headFont); text-align:left;
+    white-space:pre; overflow-x:auto; }
+
+  .options{ display:grid; grid-template-columns:1fr 1fr; gap:0.6em; max-width:24em; margin:0 auto; }
+  .opt{ background:var(--card); border-radius:0.35em; padding:0.55em 0.7em; text-align:left;
+    color:var(--textDark); font-size:0.8em; }
+
+  .callout{ border-left:0.18em solid var(--accent); padding:0.35em 0 0.35em 0.7em;
+    text-align:left; margin:0.7em auto; max-width:26em; }
+
+  /* Dense variant, for a slide with more items than the default callout budget
+     assumes (the exit ticket, once it carries 4+ questions). Smaller type and
+     tighter spacing, not smaller max-width, since narrowing the box just trades
+     height for more wraps and makes the overflow worse, not better. */
+  .callout.dense{ font-size:0.72em; padding:0.3em 0 0.3em 0.6em; margin:0.5em auto;
+    max-width:34em; }
+  .callout.dense p{ margin-bottom:0.4em; line-height:1.3; }
+
+  /* ===================== TIMER =====================
+    Every timed thing in the room gets one: reading check, activity, role swap,
+    share back, discussion, exit ticket. A discussion without a visible clock
+    reliably eats the following phase.
+
+    Click (or tap) to start, click to pause, click when finished to reset.
+    Deliberately NOT bound to a key: reveal already owns the keyboard, and a
+    space-bar timer would fire every time the deck advanced. Deliberately
+    silent: an alarm in a room of people mid-conversation is worse than a
+    colour change nobody has to react to.
+  */
+  .timer{
+    display:inline-flex; align-items:center; gap:0.5em; cursor:pointer;
+    font-family:var(--headFont); font-weight:700; user-select:none;
+    background:rgba(255,255,255,0.08); border:0.06em solid rgba(255,255,255,0.22);
+    border-radius:0.4em; padding:0.28em 0.7em; margin-top:0.5em;
+    transition:background .3s, border-color .3s, color .3s;
+  }
+  section.light .timer{ background:rgba(26,27,38,0.05); border-color:rgba(26,27,38,0.18); color:var(--textDark); }
+  .timer .clock{ font-size:1.35em; font-variant-numeric:tabular-nums; }
+  .timer .hint{ font-size:0.6em; font-weight:400; opacity:0.72; }
+  .timer.running{ border-color:var(--accent); }
+  .timer.warn{ background:rgba(224,175,104,0.20); border-color:var(--amber); color:var(--amber); }
+  .timer.warn .hint{ color:var(--amber); }
+  .timer.over{ background:rgba(247,118,142,0.22); border-color:var(--red); color:var(--red); }
+  .timer.over .hint{ color:var(--red); }
+
+  .reveal .slide-number{ font-size:0.5em; }
+
+  /* ===================== EDITABLE WORD FIELD =====================
+    The exit-ticket "word on the board" blank is directly editable in the
+    slide, for a room with no physical board, or as a backup if the word was
+    never written up. Click it and type; it is a real contenteditable, not a
+    form field, so reveal's own keyboard shortcuts stay disabled while it has
+    focus (reveal checks for exactly this before acting on a keypress).
+    Persisted to localStorage per deck, so a reload mid-class does not lose it.
+  */
+  .wordblank{
+    outline:none; cursor:text; display:inline-block; min-width:3em;
+    padding:0 0.15em; border-bottom:0.07em dashed var(--accent);
+  }
+  .wordblank:empty::before{ content:attr(data-placeholder); opacity:0.45; font-weight:400; }
+  .wordblank:focus{ border-bottom-style:solid; }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<section>
+<div class="bars"><div></div><div></div><div></div></div>
+<h1>UNIT 05: <span class="accent">JSON, Data's Native Language</span></h1>
+<p class="subtitle">Every route so far has read data. Today's first one creates it.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<!-- *** THIS IS THE ONLY SLIDE WITH SCHEDULE INFORMATION ON IT ***
+     Patch here when the calendar shifts. Weekdays only, never dates. -->
+<h2>On Deck</h2>
+<div class="options"><div class="opt"><strong>Today</strong><br><span class="small">Sprint 1 due, 11:59 PM</span></div><div class="opt"><strong>Friday</strong><br><span class="small">Lab 03 due, pulling and merging</span></div><div class="opt"><strong>Friday</strong><br><span class="small">Quiz 1 opens, due the following Tuesday</span></div><div class="opt"><strong>Read</strong><br><span class="small">Unit 06 before Thursday</span></div></div>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Today's 75 Minutes</h2>
+<div class="phase-grid"><div class="phase-card"><div class="num">1</div><div class="time">~10 min</div><div class="label">Reading check<br>and clarify</div></div><div class="phase-card"><div class="num">2</div><div class="time">~40 min</div><div class="label">Build it<br>in pairs</div></div><div class="phase-card"><div class="num">3</div><div class="time">~20 min</div><div class="label">Discussion,<br>tied to the sprint</div></div><div class="phase-card"><div class="num">4</div><div class="time">~5 min</div><div class="label">Exit ticket<br>and wrap</div></div></div>
+
+<p class="muted small" style="margin-top:1em">Same shape every lecture.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>What the Reading Check Showed</h2>
+<ul><li>The one line that has to be there before req.body is anything but undefined</li><li>Why a working POST route can still lose every entry the moment the server restarts</li><li>Whatever the free-text answers said, replace this line before class</li></ul>
+<div class="timer" data-minutes="10"><span class="clock">10:00</span><span class="hint">phase 1</span></div>
+</section>
+
+<section>
+<h2><span class="accent">express.json()</span> has to run first</h2>
+<p class="subtitle">Without it, req.body is always undefined.</p><pre><code class="language-javascript" data-trim>
+app.use(express.json());
+
+app.post(&#x27;/entries&#x27;, (req, res) =&gt; {
+  const { title, body } = req.body;
+});
+</code></pre>
+</section>
+
+<section>
+<h2><span class="accent">201</span>, and the thing you made</h2>
+<div class="left"><p>200 means it worked. 201 means it worked and something new now exists.</p></div><pre><code class="language-javascript" data-trim>
+entries.push(newEntry);
+res.status(201).json(newEntry);
+</code></pre>
+</section>
+
+<section>
+<h2>Memory forgets. <span class="accent">Restart it and see.</span></h2>
+<p class="subtitle">The entries array lives in server memory, nowhere else.</p><pre><code class="language-javascript" data-trim>
+// POST works. curl gets a 201 back.
+// Restart the server.
+// GET /entries: the new one is gone.
+</code></pre>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Activity: Creating Something New</h2>
+<p>Add a POST route for one small resource of your own choosing (not entries), reading two fields from <code>req.body</code>, pushing to an array, and responding <code>201</code> with the created object.</p>
+<div class="callout"><strong>Decide together:</strong> what happens if a required field is missing from the request body? Reject with <code>400</code> and a real error message, or silently create the entry with an empty or default value?</div>
+<a class="biglink" href="../activity/unit-05-activity.html">Full brief and starter code
+<span class="url">in the Week 01 module on Canvas</span></a>
+
+<div class="timer" data-minutes="20"><span class="clock">20:00</span><span class="hint">first half</span></div>
+</section>
+
+<section>
+<h2>Swap Roles</h2>
+<p class="subtitle">Navigator takes the keyboard. Driver reads and questions.</p>
+<p class="small">This slide is the signal. If you swapped earlier on your own,
+swap back now so everyone is on the same clock.</p>
+
+<div class="timer" data-minutes="20"><span class="clock">20:00</span><span class="hint">second half</span></div>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Compare and Share Back</h2>
+<p>Compare your missing-field answer with a neighbouring pair. Ask them what a caller of their API would actually want to happen.</p>
+<p class="small">Now, not before. This is its own five minutes, on its own
+timer.</p>
+<div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint">phase 2 close</span></div>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Discussion</h2>
+<ul><li>Sprint 1 only needs routes that return something; Sprint 2 is where real persistence starts to matter. What will your own project need to create first, not just read?</li><li>You just watched express.json() fix a real crash. Where else in your code might a missing setup step produce a confusing error instead of an obvious one?</li><li>Reject-with-400 versus silently-default came up again today. Is it the same argument as Unit 02's, or a genuinely different one?</li></ul>
+
+<div class="timer" data-minutes="20"><span class="clock">20:00</span><span class="hint">phase 3</span></div>
+</section>
+
+<section>
+<h2>Exit Ticket</h2>
+<p class="subtitle">In Canvas, before you leave. 4 questions, two minutes.</p>
+<p class="tiny" style="max-width:30em;margin:0 auto 0.4em;opacity:0.85">
+Individual, not one per pair. No makeup if forgotten, except a documented
+excused absence.</p>
+<div class="callout dense">
+<p><strong>1.</strong> Who did you work with? Name (as on Canvas) + email.</p><p><strong>2.</strong> Today's word.</p><p><strong>3.</strong> What did your pair decide, and why?</p><p><strong>4.</strong> Name one field or route you personally wrote today, and one your partner wrote.</p>
+</div>
+<p class="accent" style="font-size:1.3em;margin:0.15em 0">Word: <span
+class="wordblank" contenteditable="true" spellcheck="false"
+data-placeholder="click to type"></span></p>
+<div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint">phase 4</span></div>
+</section>
+
+<section>
+<div class="bars"><div></div><div></div><div></div></div>
+<h2>Looking Ahead</h2>
+<p>Lab 03, Pulling, Merging, and Resolving Conflicts. The entries array now lives in one shared, editable file, exactly what multiple teammates will soon be editing at the same time once Sprint 1 begins in earnest; Lab 03 teaches how to pull a teammate's changes and resolve what collides.</p>
+</section>
+
+</div>
+</div>
+
+<script src="../../../vendor/reveal/dist/reveal.js"></script>
+<script src="../../../vendor/reveal/plugin/notes/notes.js"></script>
+<script src="../../../vendor/reveal/plugin/highlight/highlight.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true, controls: true, progress: true, center: true, slideNumber: true,
+    plugins: [ RevealNotes, RevealHighlight ]
+  });
+
+  /* Timer wiring. Each .timer carries data-minutes. State lives on the element,
+     so several timers on different slides never interfere, and returning to a
+     slide leaves its timer exactly as it was left. */
+  document.querySelectorAll('.timer').forEach(function(el){
+    var total = Math.round(parseFloat(el.dataset.minutes) * 60);
+    var left = total, id = null, state = 'idle';
+    var clock = el.querySelector('.clock'), hint = el.querySelector('.hint');
+
+    function fmt(s){
+      var neg = s < 0; s = Math.abs(s);
+      return (neg ? '+' : '') + Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+    }
+    function paint(){
+      clock.textContent = fmt(left);
+      el.classList.toggle('warn', left <= total*0.25 && left > 0);
+      el.classList.toggle('over', left <= 0);
+      el.classList.toggle('running', state === 'running');
+      hint.textContent = state === 'running' ? 'click to pause'
+                       : state === 'paused'  ? 'paused, double click resets'
+                       : 'click to start';
+    }
+    function tick(){ left--; paint(); }
+    function stop(){ if (id){ clearInterval(id); id = null; } }
+
+    /* Single click toggles run/pause. Double click resets.
+       Keep these two jobs separate: an earlier version overloaded one click to
+       also mean "reset", which made a finished timer impossible to reset at all,
+       because once it was paused no branch could reach the reset. */
+    el.addEventListener('click', function(){
+      if (state === 'running'){ stop(); state = 'paused'; }
+      else { stop(); id = setInterval(tick, 1000); state = 'running'; }
+      paint();
+    });
+    el.addEventListener('dblclick', function(){
+      stop(); left = total; state = 'idle'; paint();
+    });
+    paint();
+  });
+
+  /* Editable word field. Keyed by the deck's own title, so each unit's word
+     persists independently in the same browser and reloading mid-class does
+     not lose what was typed. Enter blurs rather than inserting a newline,
+     since this is one line of text, not a note. */
+  document.querySelectorAll('.wordblank').forEach(function(el){
+    var key = 'lecture-word:' + document.title;
+    var saved = localStorage.getItem(key);
+    if (saved) el.textContent = saved;
+    el.addEventListener('input', function(){
+      localStorage.setItem(key, el.textContent);
+    });
+    el.addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){ e.preventDefault(); el.blur(); }
+    });
+  });
+</script>
+</body>
+</html>

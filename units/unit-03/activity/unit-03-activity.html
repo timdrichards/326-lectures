@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Handling the Empty State -- COMPSCI 326</title>
+<style>
+:root{
+  --dark:#1A1B26; --mid:#3D59A1; --midLight:#A9B8E8; --accent:#9ECE6A;
+  --card:#FFFFFF; --text:#1A1B26; --muted:#5C6B7A; --line:#DCE1EC;
+  --codeBg:#232430; --codeText:#E4E7EF;
+  --head:Consolas,"SF Mono",Menlo,Monaco,monospace;
+  --body:Calibri,"Segoe UI",-apple-system,BlinkMacSystemFont,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#F4F6FB;color:var(--text);font-family:var(--body);
+  font-size:18px;line-height:1.65}
+.wrap{max-width:860px;margin:0 auto;padding:2.5rem 1.25rem 5rem}
+header{border-bottom:3px solid var(--accent);padding-bottom:1rem;margin-bottom:2rem}
+.eyebrow{font-family:var(--head);color:var(--mid);font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;font-size:.8rem}
+h1{font-family:var(--head);font-size:2.1rem;margin:.3rem 0 .4rem;line-height:1.15}
+h2{font-family:var(--head);font-size:1.35rem;margin:2.2rem 0 .7rem;
+  padding-bottom:.3rem;border-bottom:1px solid var(--line)}
+h3{font-family:var(--head);font-size:1.05rem;margin:1.5rem 0 .4rem}
+p,li{margin:0 0 .8rem}
+ul,ol{padding-left:1.4rem}
+code{font-family:var(--head);background:#E8ECF5;color:#B3261E;
+  padding:.1em .35em;border-radius:3px;font-size:.9em}
+pre{background:var(--codeBg);color:var(--codeText);border-radius:8px;
+  padding:1rem 1.2rem;overflow-x:auto;font-family:var(--head);
+  font-size:.92rem;line-height:1.55}
+pre code{background:none;color:inherit;padding:0;font-size:1em}
+.box{background:var(--card);border-radius:10px;padding:1.1rem 1.3rem;
+  border-left:5px solid var(--accent);margin:1.4rem 0;
+  box-shadow:0 1px 6px rgba(26,27,38,.06)}
+.box.warn{border-left-color:#E0AF68}
+.box h3{margin-top:0}
+.meta{display:flex;gap:.6rem;flex-wrap:wrap;margin-top:.7rem}
+.pill{background:var(--mid);color:#fff;border-radius:999px;
+  padding:.2rem .8rem;font-size:.82rem;font-family:var(--head)}
+a{color:var(--mid)}
+.links li{margin-bottom:.5rem}
+.muted{color:var(--muted);font-size:.92rem}
+footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);
+  color:var(--muted);font-size:.88rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">Unit 03 activity</div>
+  <h1>Handling the Empty State</h1>
+  <div class="meta"><span class="pill">Pairs</span><span class="pill">40 minutes</span><span class="pill">Not graded</span></div>
+</header>
+
+<p>Build <code>views/events.ejs</code> that renders a hardcoded list of three or four events, each with just a <code>title</code>.</p>
+
+<div class="box">
+<h3>The decision you have to make</h3>
+<p>What should the page show when the events array is empty: nothing at all, a friendly message, or something else? Build it for real with an <code>&lt;% if %&gt;</code> block; do not just imagine it.</p><p class="muted">Try it: temporarily set your array to <code>[]</code> and look at what your own page actually does before deciding it needs fixing.</p>
+</div>
+
+
+<div class="box warn">
+<h3>AI use on this activity: Level 1</h3>
+<p>You may ask an AI tool general questions about JavaScript, Express, or HTTP.
+It may not see your code, your terminal output, or the assignment text, and it
+may never tell you what to write.</p>
+<p class="muted">What the empty state should say is a design decision about a real person reading the page, not a syntax question. An AI can explain EJS tags; it should not choose your message. Level 1 is the same level every Lab in this course
+uses, for the same reason: this is foundational skill-building, not shipped
+work.</p>
+</div>
+
+
+<h2>How to work</h2>
+<ul>
+  <li><strong>Driver</strong> types. <strong>Navigator</strong> reads, questions,
+      and looks things up.</li>
+  <li><strong>Swap at the midpoint, but only when I tell you to.</strong> Do not
+      swap on your own clock. Both of you write real code; whoever only watched
+      cannot do the homework, so the swap is enforced from the front of the
+      room, not left to pairs to remember.</li>
+  <li>One machine is fine. Two is fine. Talking is the part that matters.</li>
+</ul>
+
+<h2>Starting point</h2>
+<p>Start from last class's server. Add the route and a hardcoded array:</p><pre><code>const events = [
+  { title: 'Career fair' },
+  { title: 'Hackathon kickoff' },
+];
+
+app.get('/events', (req, res) =&gt; {
+  res.render('events', { events });
+});</code></pre><p>Then <code>views/events.ejs</code>:</p><pre><code>&lt;ul&gt;
+&lt;% events.forEach(event =&gt; { %&gt;
+  &lt;li&gt;&lt;%= event.title %&gt;&lt;/li&gt;
+&lt;% }); %&gt;
+&lt;/ul&gt;</code></pre><p>Restart with <code>npm start</code> after every change.</p>
+
+<div class="box warn">
+<h3>The thing that will get you</h3>
+<p><strong>A missing semicolon or brace inside <code>&lt;% %&gt;</code> crashes the whole page</strong>, not just the list, with a stack trace in the terminal naming the exact template line. Read that line before guessing.</p>
+</div>
+
+<h2>Done when</h2>
+<ol>
+<li>The events list renders correctly with real data in the array.</li><li>You have actually tested the empty case, not just decided what it should do.</li><li>You have compared your answer with a neighbouring pair, but only once I say it is time; that comparison is its own short phase, not something to rush into once your code works.</li>
+</ol>
+
+
+<div class="box">
+<h3>You will need this for your exit ticket</h3>
+<p>Before you leave, you will be asked to name one part of today's template <strong>you</strong>
+personally wrote and one part your <strong>partner</strong> wrote. Keep
+track as you go, driver and navigator both, so you are not reconstructing it
+from memory at the door.</p>
+</div>
+
+<h2>If you finish early</h2>
+<p>Add a second field to each event, for example a <code>date</code>, and show it too. Then decide: should events with no date sort to the top, the bottom, or somewhere in between? You do not need to write real sorting logic if you do not want to, deciding the answer and saying why counts.</p>
+
+<h2>Useful links</h2>
+<ul class="links">
+<li><a href="https://ejs.co/#docs">EJS docs</a>, the full tag reference.</li><li><a href="https://expressjs.com/en/4x/api.html#res.render">Express: <code>res.render()</code></a>.</li><li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/ul">MDN: <code>&lt;ul&gt;</code></a>, for comparison.</li>
+</ul>
+<p class="muted">Unit 03's own page in Canvas has the full walkthrough
+and a video, if you want to re-read the mechanics rather than the design
+question.</p>
+
+<footer>COMPSCI 326, Web Programming. Not graded. The point is the decision, not
+the code.</footer>
+</div>
+</body>
+</html>
