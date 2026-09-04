@@ -63,14 +63,9 @@
   .reveal li{ margin-bottom:0.45em; text-align:left; }
   .reveal .left{ text-align:left; max-width:26em; margin-left:auto; margin-right:auto; }
 
-  /* Link out to an activity handout. Big enough to read from the back row,
-     since students type it or scan it rather than click it. */
-  .biglink{ display:inline-block; font-family:var(--headFont); font-weight:700;
-    background:var(--mid); color:var(--white); text-decoration:none;
-    border-radius:0.35em; padding:0.4em 0.9em; margin-top:0.5em; font-size:0.9em; }
-  .biglink:hover{ background:var(--accent); color:var(--dark); }
-  .biglink .url{ display:block; font-size:0.62em; font-weight:400; opacity:0.85;
-    margin-top:0.15em; }
+  /* .biglink was removed 2026-09-03 along with the standalone activity
+     handouts. The brief now lives in Canvas as a date-gated assignment, so the
+     deck names where it is rather than linking out. */
   .reveal .subtitle{ font-size: 0.92em; }
   .reveal .small{ font-size: 0.78em; }
   .reveal .tiny{ font-size: 0.62em; line-height: 1.35; }
@@ -252,8 +247,8 @@ const to = req.query.to || 10;
 <h2>Activity: Filtering with Query Strings</h2>
 <p>Add a <code>/projects</code> route to your Unit 01 portfolio server that returns a filtered list using a <span class='accent'>?tag</span> query parameter.</p>
 <div class="callout"><strong>Decide together:</strong> what happens when <span class='accent'>?tag</span> is missing entirely, show everything, or require it? What happens when it is given but matches nothing you have, an empty list, or a message saying so?</div>
-<a class="biglink" href="../activity/unit-02-activity.html">Full brief and starter code
-<span class="url">in the Week 01 module on Canvas</span></a>
+<p class="small">The full brief and starter code are in Canvas, under this unit.
+Nothing is submitted.</p>
 
 <div class="timer" data-minutes="20"><span class="clock">20:00</span><span class="hint">first half</span></div>
 </section>
