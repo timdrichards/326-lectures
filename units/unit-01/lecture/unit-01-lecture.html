@@ -235,11 +235,11 @@ app.use(handler)           // every method, every path, in order
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
-<h2>Routes must be registered <span class="accent">before</span> listen</h2>
+<h2>Why a route can go <span class="accent">missing</span></h2>
 <pre><code class="language-javascript" data-trim>
-app.listen(PORT, ...);
-app.get(&#x27;/status&#x27;, ...);   // never registered
-</code></pre><p class="small">One of you hit this and worked it out alone. <code>app.listen</code> goes last, always.</p>
+app.use((req, res) =&gt; res.status(404)...);  // catch-all
+app.get(&#x27;/status&#x27;, ...);                    // never reached
+</code></pre><p class="small">One of you hit this and worked it out alone. The catch-all matches everything, so anything below it is dead. <code>app.listen</code> conventionally goes last, but a route after it still works: position relative to the <em>other routes</em> is what matters.</p>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
