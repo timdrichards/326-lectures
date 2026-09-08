@@ -212,8 +212,49 @@
 
 <section class="light" data-background-color="#F4F6FB">
 <h2>What the Reading Check Showed</h2>
-<ul><li>Restarting the server after an edit, and why the terminal does not come back</li><li>What <span class='accent'>app.get</span> actually registers, and when the handler runs</li><li>Whatever the free-text answers said, replace this line before class</li></ul>
+<ul><li><strong>37 of you</strong>, and both questions landed: <strong>89%</strong> on why the terminal does not come back, <strong>84%</strong> on needing a restart</li><li>So the <em>ideas</em> are fine. Almost every comment was about <span class='accent'>getting the tools working</span></li><li>Biggest by far: the dev environment. Then npm and <span class='accent'>package.json</span></li><li>One real gap: <span class='accent'>how Express picks a route</span></li><li>And one of you found a genuine error in the Unit 01 page</li></ul>
 <div class="timer" data-minutes="10"><span class="clock">10:00</span><span class="hint">phase 1</span></div>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Routes are tried <span class="accent">in order</span></h2>
+<p class="subtitle">"I thought the server would figure out which route made the most sense. It just checks top to bottom?"</p><pre><code class="language-javascript" data-trim>
+app.get(&#x27;/hello&#x27;, ...)   // checked first
+app.get(&#x27;/:name&#x27;, ...)   // never reached for /hello
+
+// swap them and /hello is swallowed by /:name
+</code></pre><p class="small">First match wins. Not best match. Specific routes go above general ones.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2><span class="accent">app.get</span> vs <span class="accent">app.use</span></h2>
+<pre><code class="language-javascript" data-trim>
+app.get(&#x27;/path&#x27;, handler)  // one method, one exact path
+app.use(handler)           // every method, every path, in order
+</code></pre><p class="small">One of you had it already: <em>get</em> is a logic gate for a specific URL, <em>use</em> is the everything-else catch. That is why the 404 handler is <strong>last</strong>.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Routes must be registered <span class="accent">before</span> listen</h2>
+<pre><code class="language-javascript" data-trim>
+app.listen(PORT, ...);
+app.get(&#x27;/status&#x27;, ...);   // never registered
+</code></pre><p class="small">One of you hit this and worked it out alone. <code>app.listen</code> goes last, always.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>The <span class="accent">environment</span> is the real hurdle</h2>
+<p class="subtitle">By far the most common comment. You are not behind.</p><ul><li>Files go in <strong>VS Code</strong>, inside the container, not the terminal</li><li><code>npm start</code>, not <code>node server.js</code></li><li>Port already in use means an old server is still running</li><li>Still stuck after class? Come Friday, or to office hours</li></ul>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>You found a <span class="accent">real error</span> in Unit 01</h2>
+<p class="subtitle">And you were right.</p><pre><code class="language-javascript" data-trim>
+npm init -y   // actually writes:
+&quot;scripts&quot;: { &quot;test&quot;: &quot;echo \&quot;Error: no test specified\&quot; &amp;&amp; exit 1&quot; }
+
+// the page showed &quot;start&quot;: &quot;node server.js&quot; and said &quot;add one line&quot;
+</code></pre><p class="small">The page has been fixed. This material is new this term, so there will be more of these. <strong>Tell me when you find one.</strong> That is a contribution, not a complaint.</p>
 </section>
 
 <section>
