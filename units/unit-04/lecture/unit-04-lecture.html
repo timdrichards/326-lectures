@@ -165,6 +165,9 @@
     transition:background .3s, border-color .3s, color .3s;
   }
   section.light .timer{ background:rgba(26,27,38,0.05); border-color:rgba(26,27,38,0.18); color:var(--textDark); }
+  /* Two timers side by side, for a phase that is really two activities.
+     wrap so a narrow projector stacks them rather than clipping the second. */
+  .timer-row{ display:flex; gap:0.9em; flex-wrap:wrap; align-items:flex-start; }
   .timer .clock{ font-size:1.35em; font-variant-numeric:tabular-nums; }
   .timer .hint{ font-size:0.6em; font-weight:400; opacity:0.72; }
   .timer.running{ border-color:var(--accent); }
@@ -172,6 +175,18 @@
   .timer.warn .hint{ color:var(--amber); }
   .timer.over{ background:rgba(247,118,142,0.22); border-color:var(--red); color:var(--red); }
   .timer.over .hint{ color:var(--red); }
+
+  /* These have to be repeated at higher specificity for light slides, which is
+     every content slide in the deck. `section.light .timer` above is (0,2,1)
+     and plain `.timer.over` is only (0,2,0), so without these the state colours
+     silently lose to the light-slide default: the class is applied, the clock
+     stops, and it stays the same grey as before. Found by reading computed
+     style on a real slide, not from the markup, which looked correct. */
+  section.light .timer.running{ border-color:var(--accent); }
+  section.light .timer.warn{ background:rgba(224,175,104,0.22); border-color:var(--amber); color:#8a5a00; }
+  section.light .timer.warn .hint{ color:#8a5a00; }
+  section.light .timer.over{ background:rgba(247,118,142,0.20); border-color:var(--red); color:#b3123c; }
+  section.light .timer.over .hint{ color:#b3123c; }
 
   /* ===================== PHASE TIMER =====================
     One clock that spans several consecutive slides, so a stretch of related
@@ -353,7 +368,10 @@ timer.</p>
 <h2>Discussion</h2>
 <ul><li>Sprint 1 does not require styling yet either, but a layout decision made now is cheap; the same decision made after Sprint 3 is a rewrite. What is one CSS choice from today worth locking in early?</li><li>You just built a light and dark theme with zero JavaScript. Where else might a CSS-only solution beat writing a script?</li><li>Where did your breakpoint argument actually come from: a real phone width, or a round number?</li></ul>
 
-<div class="timer" data-minutes="20"><span class="clock">20:00</span><span class="hint">phase 3</span></div>
+<div class="timer-row">
+<div class="timer" data-minutes="10"><span class="clock">10:00</span><span class="hint">with the groups next to you</span></div>
+<div class="timer" data-minutes="10"><span class="clock">10:00</span><span class="hint">open to the room</span></div>
+</div>
 </section>
 
 <section>
@@ -398,19 +416,27 @@ data-placeholder="click to type"></span></p>
     var clock = el.querySelector('.clock'), hint = el.querySelector('.hint');
 
     function fmt(s){
-      var neg = s < 0; s = Math.abs(s);
-      return (neg ? '+' : '') + Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+      return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
     }
     function paint(){
-      clock.textContent = fmt(left);
+      clock.textContent = fmt(Math.max(left, 0));
       el.classList.toggle('warn', left <= total*0.25 && left > 0);
       el.classList.toggle('over', left <= 0);
       el.classList.toggle('running', state === 'running');
-      hint.textContent = state === 'running' ? 'click to pause'
+      hint.textContent = state === 'done'    ? 'time is up, dbl click resets'
+                       : state === 'running' ? 'click to pause'
                        : state === 'paused'  ? 'paused, double click resets'
                        : 'click to start';
     }
-    function tick(){ left--; paint(); }
+    /* Halt at 0:00 rather than counting up. An earlier version ran into
+       overtime so the overrun was visible, but on a projector a growing +2:14
+       reads as a timer that is still asking for more time, when the intent is
+       that the activity is over. Red and frozen says done. */
+    function tick(){
+      left--;
+      if (left <= 0){ left = 0; stop(); state = 'done'; }
+      paint();
+    }
     function stop(){ if (id){ clearInterval(id); id = null; } }
 
     /* Single click toggles run/pause. Double click resets.
@@ -418,6 +444,7 @@ data-placeholder="click to type"></span></p>
        also mean "reset", which made a finished timer impossible to reset at all,
        because once it was paused no branch could reach the reset. */
     el.addEventListener('click', function(){
+      if (state === 'done') return;   /* only a reset gets you out of done */
       if (state === 'running'){ stop(); state = 'paused'; }
       else { stop(); id = setInterval(tick, 1000); state = 'running'; }
       paint();
@@ -468,24 +495,30 @@ data-placeholder="click to type"></span></p>
     var total = 0, left = 0, id = null, state = 'idle';
 
     function fmt(s){
-      var neg = s < 0; s = Math.abs(s);
-      return (neg ? '+' : '') + Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+      return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
     }
     function paint(){
-      clock.textContent = fmt(left);
+      clock.textContent = fmt(Math.max(left, 0));
       el.classList.toggle('warn', left <= total*0.25 && left > 0);
       el.classList.toggle('over', left <= 0);
       el.classList.toggle('running', state === 'running');
-      hint.textContent = state === 'running' ? 'click to pause'
+      hint.textContent = state === 'done'    ? 'time is up, dbl click resets'
+                       : state === 'running' ? 'click to pause'
                        : state === 'paused'  ? 'paused, dbl click resets'
                        : 'click to start';
     }
     function stop(){ if (id){ clearInterval(id); id = null; } }
+    /* Halts at 0:00 in red, same as the inline .timer elements. */
+    function tick(){
+      left--;
+      if (left <= 0){ left = 0; stop(); state = 'done'; }
+      paint();
+    }
 
     el.addEventListener('click', function(){
+      if (state === 'done') return;
       if (state === 'running'){ stop(); state = 'paused'; }
-      else { stop(); id = setInterval(function(){ left--; paint(); }, 1000);
-             state = 'running'; }
+      else { stop(); id = setInterval(tick, 1000); state = 'running'; }
       paint();
     });
     el.addEventListener('dblclick', function(){
