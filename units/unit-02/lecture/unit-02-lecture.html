@@ -212,8 +212,58 @@
 
 <section class="light" data-background-color="#F4F6FB">
 <h2>What the Reading Check Showed</h2>
-<ul><li>Which part of a route actually has to match for Express to run the handler at all: the path, or the query string</li><li>What a typo in <span class='accent'>req.params</span> actually produces, not a crash, just the wrong value</li><li>Whatever the free-text answers said, replace this line before class</li></ul>
+<ul><li><strong>51 of you</strong>, and both questions landed: 75 percent and 80 percent</li><li>But the free text was not about either question. <span class='accent'>express.Router()</span> and the routes/ split was the single biggest gap, about a dozen of you</li><li>Right behind it, when to reach for <span class='accent'>req.query</span> instead of <span class='accent'>req.params</span></li></ul>
 <div class="timer" data-minutes="10"><span class="clock">10:00</span><span class="hint">phase 1</span></div>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Why split routes into <span class="accent">files</span> at all?</h2>
+<p class="subtitle">"I get that it helps organize routes, but I'm still confused why we need to split them into separate files instead of keeping them all in server.js."</p><pre><code class="language-javascript" data-trim>
+app.use(&#x27;/&#x27;, pagesRouter);
+app.use(&#x27;/api&#x27;, apiRouter);
+</code></pre>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>The <span class="accent">prefix</span> is the point</h2>
+<pre><code class="language-javascript" data-trim>
+// routes/api.js
+router.get(&#x27;/info&#x27;, ...)      // the file says /info
+
+// server.js
+app.use(&#x27;/api&#x27;, apiRouter)    // the browser sees /api/info
+</code></pre><p class="small">One of you hit exactly this: <code>/api/status</code> worked and <code>/status</code> said no path found. The router file never knows its own prefix.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2><span class="accent">params</span> or <span class="accent">query</span>?</h2>
+<div class="left"><p><strong>Path parameter.</strong> Part of the address. No route without it. <code>/hello/:name</code></p><p><strong>Query parameter.</strong> Optional extra. The route matches with or without it. <code>/count?from=1</code></p></div><pre><code class="language-javascript" data-trim>
+req.query.from || 1   // always needs a fallback
+req.params.name       // guaranteed to exist
+</code></pre>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2><span class="accent">res.status()</span> does not stop your function</h2>
+<p class="subtitle">"It looks like it should end the request like a return statement in a normal function, but it doesn't."</p><pre><code class="language-javascript" data-trim>
+if (!thing) {
+  return res.status(404).send(&#x27;Not found&#x27;);   // note the return
+}
+res.json(thing);
+</code></pre>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>When two routes <span class="accent">overlap</span></h2>
+<p class="subtitle">"What route gets chosen if there is an overlap, is it always the first one?"</p><pre><code class="language-javascript" data-trim>
+app.get(&#x27;/repeat/hello&#x27;, ...)   // checked first
+app.get(&#x27;/repeat/:word&#x27;, ...)   // catches everything else
+</code></pre><p class="small">Yes. First match wins, in registration order. Same rule as Tuesday.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>One of you found a <span class="accent">hole</span> in my question</h2>
+<p class="subtitle">Question 2 asked what <code>req.params.nname</code> produces.</p><div class="left"><p>"Would it depend on the app.get line? If it read <code>/hello/:nname</code>, would the parameters now match?"</p></div><p class="small">Yes, they would. The question assumed the route still said <code>:name</code>, and never said so.</p>
 </section>
 
 <section>
