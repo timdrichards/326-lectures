@@ -332,6 +332,18 @@ req.params.name       // guaranteed to exist
 </section>
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="10">
+<h2>And what <span class="accent">is</span> curl?</h2>
+<p class="subtitle">A web browser with no window. You give it a URL, it makes the request, it prints what came back.</p><pre><code class="language-bash" data-trim>
+curl -i http://localhost:3000/hello/Alice
+</code></pre><pre><code class="language-text" data-trim>
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+
+Hello, Alice!
+</code></pre><p class="small">Already installed, in the container and on your machine. Full page in Canvas: <strong>&#129513; curl</strong>.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="10">
 <h2><span class="accent">res.status()</span> does not stop your function</h2>
 <p class="subtitle">"It looks like it should end the request like a return statement in a normal function, but it doesn't."</p><pre><code class="language-javascript" data-trim>
 if (!thing) {
