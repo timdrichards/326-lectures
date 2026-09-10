@@ -62,6 +62,11 @@
     max-width:26em; margin:0.4em auto; padding-left:1.1em; }
   .reveal li{ margin-bottom:0.45em; text-align:left; }
   .reveal .left{ text-align:left; max-width:26em; margin-left:auto; margin-right:auto; }
+  /* The recap slide carries up to six items, so tighten the default paragraph
+     rhythm or a longer unit overflows the 700px canvas. */
+  .reveal .recap{ max-width:30em; }
+  .reveal .recap p{ margin:0 0 0.55em; line-height:1.25; }
+  .reveal .recap .small{ opacity:0.8; }
 
   /* .biglink was removed 2026-09-03 along with the standalone activity
      handouts. The brief now lives in Canvas as a date-gated assignment, so the
@@ -168,6 +173,60 @@
   .timer.over{ background:rgba(247,118,142,0.22); border-color:var(--red); color:var(--red); }
   .timer.over .hint{ color:var(--red); }
 
+  /* ===================== PHASE TIMER =====================
+    One clock that spans several consecutive slides, so a stretch of related
+    slides (the reading check and each question it surfaced) shares a single
+    countdown instead of restarting on every slide.
+
+    It lives outside .slides and is position:fixed, deliberately: .slides
+    carries reveal's scaling transform, so anything inside it that tries to
+    pin itself to a corner fights that transform and drifts at other window
+    sizes. Fixed to the viewport is immune.
+
+    Two resting places. On the slide that opens the phase it sits large and
+    centred under the content, because there it IS the subject. On every later
+    slide it shrinks into the bottom-right so the slide's own content owns the
+    space. Moving between them is one class change, and the transition below
+    does the travel. */
+  #phase-timer{
+    position:fixed; z-index:40; display:none;
+    align-items:center; gap:0.55em; cursor:pointer; user-select:none;
+    font-family:var(--headFont); font-weight:700;
+    background:rgba(26,27,38,0.06); border:2px solid rgba(26,27,38,0.20);
+    border-radius:0.45em; color:var(--textDark);
+    transition:left .45s cubic-bezier(.4,0,.2,1), top .45s cubic-bezier(.4,0,.2,1),
+               transform .45s cubic-bezier(.4,0,.2,1), opacity .3s,
+               background .3s, border-color .3s, color .3s;
+  }
+  #phase-timer.on{ display:inline-flex; }
+  #phase-timer .clock{ font-variant-numeric:tabular-nums; }
+  #phase-timer .hint{ font-weight:400; opacity:0.7; }
+  /* hero: centred along the bottom, large.
+     Pinned to the bottom edge rather than a percentage of the height: reveal
+     centres slide content vertically, so a slide with more bullets grows
+     downward and a percentage-positioned timer ends up sitting on top of the
+     last line. Measured: at 78% it overlapped the third bullet by 57px. */
+  #phase-timer.hero{
+    left:50%; top:calc(100vh - 4.6rem); transform:translate(-50%,-50%) scale(1);
+    padding:0.3em 0.85em; font-size:30px;
+  }
+  #phase-timer.hero .clock{ font-size:1.3em; }
+  #phase-timer.hero .hint{ font-size:0.55em; }
+  /* mini: parked bottom-LEFT, out of the content's way.
+     Not bottom-right: that corner already holds reveal's own navigation arrows
+     and the slide-number badge, and the timer landed on top of both. Bottom
+     left is empty on every slide in the cadence. */
+  #phase-timer.mini{
+    left:1.4rem; top:calc(100vh - 3.6rem);
+    transform:translate(0,-50%) scale(1);
+    padding:0.25em 0.6em; font-size:20px;
+  }
+  #phase-timer.mini .clock{ font-size:1.15em; }
+  #phase-timer.mini .hint{ font-size:0.5em; }
+  #phase-timer.running{ border-color:var(--accent); }
+  #phase-timer.warn{ background:rgba(224,175,104,0.22); border-color:var(--amber); color:var(--amber); }
+  #phase-timer.over{ background:rgba(247,118,142,0.24); border-color:var(--red); color:var(--red); }
+
   .reveal .slide-number{ font-size:0.5em; }
 
   /* ===================== EDITABLE WORD FIELD =====================
@@ -211,9 +270,13 @@
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
+<h2>What Unit 05 Covered</h2>
+<div class="left recap"><p><strong class="accent">From objects to text</strong></p><p><strong class="accent">Parsing JSON back</strong></p><p><strong class="accent">Accepting JSON in a request</strong></p><p><strong class="accent">A real POST route</strong></p><p><strong class="accent">Naming the pattern</strong></p></div>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="10" data-phase-timer-start>
 <h2>What the Reading Check Showed</h2>
 <ul><li>The one line that has to be there before req.body is anything but undefined</li><li>Why a working POST route can still lose every entry the moment the server restarts</li></ul>
-<div class="timer" data-minutes="10"><span class="clock">10:00</span><span class="hint">phase 1</span></div>
 </section>
 
 <section>
@@ -365,6 +428,79 @@ data-placeholder="click to type"></span></p>
       if (e.key === 'Enter'){ e.preventDefault(); el.blur(); }
     });
   });
+
+  /* ===================== PHASE TIMER =====================
+     One clock across a run of consecutive slides, so the reading-check
+     discussion is timed as a whole rather than restarting on each question.
+
+     A section opts in with data-phase-timer="<minutes>". The slide that opens
+     the run also carries data-phase-timer-start, which is what makes it sit
+     large and centred there and small in the corner afterwards.
+
+     Deliberately ONE element reused, not one per slide. The countdown is then
+     continuous by construction: there is no state to hand between slides, and
+     no way for two copies to disagree about how much time is left. Moving it
+     is a class swap; the CSS transition does the travel and the resize. */
+  (function(){
+    var host = document.querySelector('.reveal');
+    if (!host) return;
+    var el = document.createElement('div');
+    el.id = 'phase-timer';
+    el.innerHTML = '<span class="clock"></span><span class="hint"></span>';
+    host.appendChild(el);
+
+    var clock = el.querySelector('.clock'), hint = el.querySelector('.hint');
+    var total = 0, left = 0, id = null, state = 'idle';
+
+    function fmt(s){
+      var neg = s < 0; s = Math.abs(s);
+      return (neg ? '+' : '') + Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+    }
+    function paint(){
+      clock.textContent = fmt(left);
+      el.classList.toggle('warn', left <= total*0.25 && left > 0);
+      el.classList.toggle('over', left <= 0);
+      el.classList.toggle('running', state === 'running');
+      hint.textContent = state === 'running' ? 'click to pause'
+                       : state === 'paused'  ? 'paused, dbl click resets'
+                       : 'click to start';
+    }
+    function stop(){ if (id){ clearInterval(id); id = null; } }
+
+    el.addEventListener('click', function(){
+      if (state === 'running'){ stop(); state = 'paused'; }
+      else { stop(); id = setInterval(function(){ left--; paint(); }, 1000);
+             state = 'running'; }
+      paint();
+    });
+    el.addEventListener('dblclick', function(){
+      stop(); state = 'idle'; left = total; paint();
+    });
+
+    function sync(){
+      var s = Reveal.getCurrentSlide();
+      var mins = s && s.dataset ? s.dataset.phaseTimer : null;
+      if (!mins){ el.classList.remove('on','hero','mini'); return; }
+
+      var t = Math.round(parseFloat(mins) * 60);
+      /* Only (re)arm on the slide that STARTS the phase, and only while it has
+         not been started yet. Without the state check, stepping back to the
+         first slide mid-discussion would silently wipe the running clock. */
+      if (s.hasAttribute('data-phase-timer-start') && state === 'idle'){
+        total = t; left = t;
+      } else if (!total){
+        total = t; left = t;
+      }
+      el.classList.add('on');
+      var hero = s.hasAttribute('data-phase-timer-start');
+      el.classList.toggle('hero', hero);
+      el.classList.toggle('mini', !hero);
+      paint();
+    }
+
+    Reveal.on('ready', sync);
+    Reveal.on('slidechanged', sync);
+  })();
 </script>
 </body>
 </html>
