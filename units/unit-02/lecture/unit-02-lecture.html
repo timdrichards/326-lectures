@@ -319,6 +319,19 @@ res.json(thing);
 </section>
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="10">
+<h2>Without the <span class="accent">return</span></h2>
+<pre><code class="language-javascript" data-trim>
+if (!thing) {
+  res.status(404).send(&#x27;Not found&#x27;);
+}
+res.json(thing);   // runs anyway
+</code></pre><p class="small">The browser still shows <code>404 Not found</code>, so from the outside it looks like it worked. The damage is on the server:</p><pre><code class="language-text" data-trim>
+Error [ERR_HTTP_HEADERS_SENT]: Cannot set
+headers after they are sent to the client
+</code></pre>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="10">
 <h2>When two routes <span class="accent">overlap</span></h2>
 <p class="subtitle">"What route gets chosen if there is an overlap, is it always the first one?"</p><pre><code class="language-javascript" data-trim>
 app.get(&#x27;/repeat/hello&#x27;, ...)   // checked first
