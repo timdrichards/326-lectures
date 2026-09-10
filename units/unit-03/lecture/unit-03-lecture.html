@@ -167,7 +167,16 @@
   section.light .timer{ background:rgba(26,27,38,0.05); border-color:rgba(26,27,38,0.18); color:var(--textDark); }
   /* Two timers side by side, for a phase that is really two activities.
      wrap so a narrow projector stacks them rather than clipping the second. */
-  .timer-row{ display:flex; gap:0.9em; flex-wrap:wrap; align-items:flex-start; }
+  .timer-row{ display:flex; gap:1.4em; flex-wrap:wrap; align-items:flex-start; }
+  .timer-unit{ display:inline-block; margin-top:0.5em; }
+  /* The caption says what the time is FOR. It is separate from .hint, which the
+     timer JS overwrites with the run/pause state on every repaint. */
+  .timer-cap{
+    font-family:var(--headFont); font-size:0.52em; font-weight:700;
+    letter-spacing:0.06em; text-transform:uppercase; opacity:0.72;
+    margin:0 0 0.25em 0.15em;
+  }
+  .timer-unit .timer{ margin-top:0; }
   .timer .clock{ font-size:1.35em; font-variant-numeric:tabular-nums; }
   .timer .hint{ font-size:0.6em; font-weight:400; opacity:0.72; }
   .timer.running{ border-color:var(--accent); }
@@ -332,7 +341,7 @@ res.render(&#x27;layout&#x27;, { title: &#x27;Entries&#x27;, body: inner });
 <p class="small">The full brief and starter code are in Canvas, under this unit.
 Nothing is submitted.</p>
 
-<div class="timer" data-minutes="20"><span class="clock">20:00</span><span class="hint">first half</span></div>
+<div class="timer-unit"><div class="timer-cap">Build it, with your group</div><div class="timer" data-minutes="20"><span class="clock">20:00</span><span class="hint"></span></div></div>
 </section>
 
 <section>
@@ -341,7 +350,7 @@ Nothing is submitted.</p>
 <p class="small">This slide is the signal. If you swapped earlier on your own,
 swap back now so everyone is on the same clock.</p>
 
-<div class="timer" data-minutes="20"><span class="clock">20:00</span><span class="hint">second half</span></div>
+<div class="timer-unit"><div class="timer-cap">Keep building, second half</div><div class="timer" data-minutes="20"><span class="clock">20:00</span><span class="hint"></span></div></div>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
@@ -349,7 +358,7 @@ swap back now so everyone is on the same clock.</p>
 <p>Compare your empty-state answer with a neighbouring group. Ask them where in a real application a list actually turns up empty, and who sees it first.</p>
 <p class="small">Now, not before. This is its own five minutes, on its own
 timer.</p>
-<div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint">phase 2 close</span></div>
+<div class="timer-unit"><div class="timer-cap">Share back what you built</div><div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint"></span></div></div>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
@@ -357,8 +366,8 @@ timer.</p>
 <ul><li>Sprint 1 says plain text is fine for now, styled templates come later. Even so: is there one page in your future project where a real template already saves you real work this week?</li><li>What is the actual difference between &lt;%= %&gt; and &lt;% %&gt;, in your own words, not the unit's?</li><li>You just decided what an empty list looks like. Was that decision about code, or about the person reading the page?</li></ul>
 
 <div class="timer-row">
-<div class="timer" data-minutes="10"><span class="clock">10:00</span><span class="hint">with the groups next to you</span></div>
-<div class="timer" data-minutes="10"><span class="clock">10:00</span><span class="hint">open to the room</span></div>
+<div class="timer-unit"><div class="timer-cap">Compare with the groups next to you</div><div class="timer" data-minutes="10"><span class="clock">10:00</span><span class="hint"></span></div></div>
+<div class="timer-unit"><div class="timer-cap">Open discussion, whole room</div><div class="timer" data-minutes="10"><span class="clock">10:00</span><span class="hint"></span></div></div>
 </div>
 </section>
 
@@ -366,7 +375,7 @@ timer.</p>
 <h2><span class="accent">Sprint 0</span> due tonight, <span class="accent">Sprint 1</span> opens</h2>
 <p class="subtitle">One closes, the next begins, both today.</p>
 <ul><li>Sprint 0 is due <strong>tonight at 11:59</strong>. Repository, roster, working agreement, domain paragraph.</li><li>Sprint 1 opens today and is due a week from today. It asks for a running Express server with two routes in your own domain.</li><li>If your team has not agreed on a domain yet, that is the blocker, not the code.</li></ul>
-<div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint">sprint Q and A</span></div>
+<div class="timer-unit"><div class="timer-cap">Sprint questions</div><div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint"></span></div></div>
 </section>
 
 <section>
@@ -381,7 +390,7 @@ excused absence.</p>
 <p class="accent" style="font-size:1.3em;margin:0.15em 0">Word: <span
 class="wordblank" contenteditable="true" spellcheck="false"
 data-placeholder="click to type"></span></p>
-<div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint">phase 4</span></div>
+<div class="timer-unit"><div class="timer-cap">Exit ticket, then wrap</div><div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint"></span></div></div>
 </section>
 
 <section>

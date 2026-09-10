@@ -167,7 +167,16 @@
   section.light .timer{ background:rgba(26,27,38,0.05); border-color:rgba(26,27,38,0.18); color:var(--textDark); }
   /* Two timers side by side, for a phase that is really two activities.
      wrap so a narrow projector stacks them rather than clipping the second. */
-  .timer-row{ display:flex; gap:0.9em; flex-wrap:wrap; align-items:flex-start; }
+  .timer-row{ display:flex; gap:1.4em; flex-wrap:wrap; align-items:flex-start; }
+  .timer-unit{ display:inline-block; margin-top:0.5em; }
+  /* The caption says what the time is FOR. It is separate from .hint, which the
+     timer JS overwrites with the run/pause state on every repaint. */
+  .timer-cap{
+    font-family:var(--headFont); font-size:0.52em; font-weight:700;
+    letter-spacing:0.06em; text-transform:uppercase; opacity:0.72;
+    margin:0 0 0.25em 0.15em;
+  }
+  .timer-unit .timer{ margin-top:0; }
   .timer .clock{ font-size:1.35em; font-variant-numeric:tabular-nums; }
   .timer .hint{ font-size:0.6em; font-weight:400; opacity:0.72; }
   .timer.running{ border-color:var(--accent); }
@@ -383,7 +392,7 @@ app.listen(3000);
 <p class="small">The full brief and starter code are in Canvas, under this unit.
 Nothing is submitted.</p>
 <p class="small" style="opacity:0.75">Today only: 15 minutes, not the usual 20, see On Deck.</p>
-<div class="timer" data-minutes="15"><span class="clock">15:00</span><span class="hint">first half</span></div>
+<div class="timer-unit"><div class="timer-cap">Build it, with your group</div><div class="timer" data-minutes="15"><span class="clock">15:00</span><span class="hint"></span></div></div>
 </section>
 
 <section>
@@ -392,7 +401,7 @@ Nothing is submitted.</p>
 <p class="small">This slide is the signal. If you swapped earlier on your own,
 swap back now so everyone is on the same clock.</p>
 <p class="small" style="opacity:0.75">Today only: 15 minutes, not the usual 20, see On Deck.</p>
-<div class="timer" data-minutes="15"><span class="clock">15:00</span><span class="hint">second half</span></div>
+<div class="timer-unit"><div class="timer-cap">Keep building, second half</div><div class="timer" data-minutes="15"><span class="clock">15:00</span><span class="hint"></span></div></div>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
@@ -400,7 +409,7 @@ swap back now so everyone is on the same clock.</p>
 <p>Compare your route list and your naming answer with a neighbouring group. Name one thing they did differently, and why it is also reasonable.</p>
 <p class="small">Now, not before. This is its own five minutes, on its own
 timer.</p>
-<div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint">phase 2 close</span></div>
+<div class="timer-unit"><div class="timer-cap">Share back what you built</div><div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint"></span></div></div>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
@@ -408,8 +417,8 @@ timer.</p>
 <ul><li>Sprint 0 is team setup. What is the first route your team's project needs?</li><li>You just disagreed about a URL. What made one answer better than the other?</li><li>Where did the naming argument run out of evidence?</li></ul>
 <p class="small" style="opacity:0.75">Today only: 15 minutes across both, not the usual 20, see On Deck.</p>
 <div class="timer-row">
-<div class="timer" data-minutes="8"><span class="clock">8:00</span><span class="hint">with the groups next to you</span></div>
-<div class="timer" data-minutes="7"><span class="clock">7:00</span><span class="hint">open to the room</span></div>
+<div class="timer-unit"><div class="timer-cap">Compare with the groups next to you</div><div class="timer" data-minutes="8"><span class="clock">8:00</span><span class="hint"></span></div></div>
+<div class="timer-unit"><div class="timer-cap">Open discussion, whole room</div><div class="timer" data-minutes="7"><span class="clock">7:00</span><span class="hint"></span></div></div>
 </div>
 </section>
 
@@ -425,7 +434,7 @@ excused absence.</p>
 <p class="accent" style="font-size:1.3em;margin:0.15em 0">Word: <span
 class="wordblank" contenteditable="true" spellcheck="false"
 data-placeholder="click to type"></span></p>
-<div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint">phase 4</span></div>
+<div class="timer-unit"><div class="timer-cap">Exit ticket, then wrap</div><div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint"></span></div></div>
 </section>
 
 <section>

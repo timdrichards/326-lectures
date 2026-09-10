@@ -167,7 +167,16 @@
   section.light .timer{ background:rgba(26,27,38,0.05); border-color:rgba(26,27,38,0.18); color:var(--textDark); }
   /* Two timers side by side, for a phase that is really two activities.
      wrap so a narrow projector stacks them rather than clipping the second. */
-  .timer-row{ display:flex; gap:0.9em; flex-wrap:wrap; align-items:flex-start; }
+  .timer-row{ display:flex; gap:1.4em; flex-wrap:wrap; align-items:flex-start; }
+  .timer-unit{ display:inline-block; margin-top:0.5em; }
+  /* The caption says what the time is FOR. It is separate from .hint, which the
+     timer JS overwrites with the run/pause state on every repaint. */
+  .timer-cap{
+    font-family:var(--headFont); font-size:0.52em; font-weight:700;
+    letter-spacing:0.06em; text-transform:uppercase; opacity:0.72;
+    margin:0 0 0.25em 0.15em;
+  }
+  .timer-unit .timer{ margin-top:0; }
   .timer .clock{ font-size:1.35em; font-variant-numeric:tabular-nums; }
   .timer .hint{ font-size:0.6em; font-weight:400; opacity:0.72; }
   .timer.running{ border-color:var(--accent); }
