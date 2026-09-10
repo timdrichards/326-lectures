@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAB 01: First Commit, First Push -- COMPSCI 326</title>
+
+<!--
+  Live, in-person lecture deck. Distinct from course/units/unit-NN/slides/,
+  which holds the async recorded overview (.pptx). This deck is presented in the
+  room and assumes the unit has already been read; see lecture-day-template.md.
+
+  DO NOT HAND-EDIT A GENERATED DECK. Edit the UNITS list in build_lectures.py and
+  re-run it, or the next rebuild silently discards the change.
+
+  TYPOGRAPHY, and why it is set explicitly:
+  reveal.js ships layout in reveal.css but all type in its *theme* CSS, which
+  this deck deliberately does not load (it has its own theme). Without a theme,
+  `.reveal` inherits the browser's 16px default on a 960x700 virtual canvas, and
+  body text projected at roughly 23px, about a third of legible. Measured, not
+  assumed. `--base` below restores a projection-appropriate scale; reveal's own
+  default is 42px and 34px here buys back a little content density. Every
+  component sizes in `em` off that, so changing one number rescales the deck.
+-->
+
+<link rel="stylesheet" href="../../../../vendor/reveal/dist/reveal.css">
+<link rel="stylesheet" href="../../../../vendor/reveal/plugin/highlight/monokai.css">
+
+<style>
+  /* ===================== CHROME: theme, do not edit per-lecture ===================== */
+  :root{
+    --dark:      #1A1B26;
+    --mid:       #3D59A1;
+    --midLight:  #A9B8E8;
+    --accent:    #9ECE6A;
+    --lightBg:   #F4F6FB;
+    --card:      #FFFFFF;
+    --textDark:  #1A1B26;
+    --muted:     #5C6B7A;
+    --white:     #FFFFFF;
+    --codeBg:    #232430;
+    --codeText:  #E4E7EF;
+    --red:       #F7768E;
+    --amber:     #E0AF68;
+    --green:     #9ECE6A;
+    --headFont:  Consolas, "SF Mono", Menlo, Monaco, monospace;
+    --bodyFont:  Calibri, "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+    --base:      34px;   /* projection base; see the note above before changing */
+  }
+
+  .reveal{ font-family: var(--bodyFont); font-size: var(--base); }
+  .reveal h1,.reveal h2,.reveal h3{ font-family: var(--headFont); font-weight:700;
+    letter-spacing:-0.01em; line-height:1.15; margin:0 0 0.5em; text-transform:none; }
+  .reveal h1{ font-size: 2.05em; }
+  .reveal h2{ font-size: 1.5em; }
+  .reveal h3{ font-size: 1.1em; }
+  .reveal p, .reveal li{ font-size: 1em; line-height: 1.45; }
+  /* Lists are NEVER centred. reveal centres all slide content, which leaves
+     ragged-both-sides bullets that read as a layout bug. Centre the list BLOCK,
+     left-align the text inside it. */
+  .reveal ul, .reveal ol{ display:block; text-align:left;
+    max-width:26em; margin:0.4em auto; padding-left:1.1em; }
+  .reveal li{ margin-bottom:0.45em; text-align:left; }
+  .reveal .left{ text-align:left; max-width:26em; margin-left:auto; margin-right:auto; }
+  /* The recap slide carries up to six items, so tighten the default paragraph
+     rhythm or a longer unit overflows the 700px canvas. */
+  .reveal .recap{ max-width:30em; }
+  .reveal .recap p{ margin:0 0 0.55em; line-height:1.25; }
+  .reveal .recap .small{ opacity:0.8; }
+
+  /* .biglink was removed 2026-09-03 along with the standalone activity
+     handouts. The brief now lives in Canvas as a date-gated assignment, so the
+     deck names where it is rather than linking out. */
+  .reveal .subtitle{ font-size: 0.92em; }
+  .reveal .small{ font-size: 0.78em; }
+  .reveal .tiny{ font-size: 0.62em; line-height: 1.35; }
+
+  /*
+    Dark is the default for every slide. reveal paints the background on a
+    dedicated .slide-background div, NOT on <section>, which only fills its own
+    content box; an earlier draft set `background` on section and every slide
+    rendered as a short coloured band. Styling .slide-background makes dark the
+    true default: an unmarked slide falls through to this rule, and one that
+    sets data-background-color gets an inline style that overrides it naturally.
+  */
+  .reveal .slide-background{ background-color: var(--dark); }
+  .reveal .slides section{ color: var(--white); }
+  .reveal .slides section h1,
+  .reveal .slides section h2,
+  .reveal .slides section h3{ color: var(--white); }
+  .reveal .slides section .subtitle{ color: var(--midLight); }
+  .reveal .slides section .accent{ color: var(--accent); }
+
+  /* Light variant: only slides explicitly marked class="light" */
+  .reveal .slides section.light{ color: var(--textDark); }
+  .reveal .slides section.light h1,
+  .reveal .slides section.light h2,
+  .reveal .slides section.light h3{ color: var(--textDark); }
+  .reveal .slides section.light .subtitle,
+  .reveal .slides section.light .muted{ color: var(--muted); }
+
+  /* Motif: three stacked rounded bars */
+  .bars{ display:flex; flex-direction:column; gap:0.14em; width:1.9em; margin:0 auto 0.7em; }
+  .bars div{ height:0.34em; border-radius:0.17em; }
+  .bars div:nth-child(1){ background: var(--accent); width:100%; }
+  .bars div:nth-child(2){ background: var(--mid);      width:72%; }
+  .bars div:nth-child(3){ background: var(--midLight); width:46%; }
+
+  /* Agenda phase cards */
+  .phase-grid{ display:grid; grid-template-columns: repeat(4,1fr); gap:0.7em; margin-top:1em; }
+  .phase-card{ background:var(--card); border-radius:0.4em; padding:0.7em 0.6em;
+    box-shadow:0 2px 10px rgba(26,27,38,0.08); text-align:left; }
+  .phase-card .num{ font-family:var(--headFont); color:var(--mid); font-size:1.1em; font-weight:700; }
+  .phase-card .time{ font-family:var(--headFont); color:var(--accent2,#2F7D32); font-size:0.72em; margin:0.1em 0 0.3em; }
+  .phase-card .label{ font-size:0.74em; line-height:1.3; color:var(--textDark); }
+
+  /* Code / terminal card */
+  .terminal-card{ background:var(--codeBg); color:var(--codeText); border-radius:0.35em;
+    padding:0.7em 0.9em; text-align:left; font-family:var(--headFont);
+    font-size:0.82em; line-height:1.5; }
+  .terminal-card .dots{ display:flex; gap:0.25em; margin-bottom:0.5em; }
+  .terminal-card .dots span{ width:0.42em; height:0.42em; border-radius:50%; display:inline-block; }
+
+  /* reveal's highlight plugin renders into pre>code; size it for the room.
+     text-align MUST be reset: reveal centres slide content, which silently
+     centres every line of a code block and destroys the indentation. It looks
+     fine in source and wrong on screen, so it is only ever caught by looking. */
+  .reveal pre{ width:100%; box-shadow:none; margin:0.5em 0; font-size:0.72em;
+    text-align:left; }
+  .reveal pre code{ padding:0.9em 1.1em; border-radius:0.35em; max-height:none;
+    line-height:1.45; font-family:var(--headFont); text-align:left;
+    white-space:pre; overflow-x:auto; }
+
+  .options{ display:grid; grid-template-columns:1fr 1fr; gap:0.6em; max-width:24em; margin:0 auto; }
+  .opt{ background:var(--card); border-radius:0.35em; padding:0.55em 0.7em; text-align:left;
+    color:var(--textDark); font-size:0.8em; }
+
+  .callout{ border-left:0.18em solid var(--accent); padding:0.35em 0 0.35em 0.7em;
+    text-align:left; margin:0.7em auto; max-width:26em; }
+
+  /* Dense variant, for a slide with more items than the default callout budget
+     assumes (the exit ticket, once it carries 4+ questions). Smaller type and
+     tighter spacing, not smaller max-width, since narrowing the box just trades
+     height for more wraps and makes the overflow worse, not better. */
+  .callout.dense{ font-size:0.72em; padding:0.3em 0 0.3em 0.6em; margin:0.5em auto;
+    max-width:34em; }
+  .callout.dense p{ margin-bottom:0.4em; line-height:1.3; }
+
+  /* ===================== TIMER =====================
+    Every timed thing in the room gets one: reading check, activity, role swap,
+    share back, discussion, exit ticket. A discussion without a visible clock
+    reliably eats the following phase.
+
+    Click (or tap) to start, click to pause, click when finished to reset.
+    Deliberately NOT bound to a key: reveal already owns the keyboard, and a
+    space-bar timer would fire every time the deck advanced. Deliberately
+    silent: an alarm in a room of people mid-conversation is worse than a
+    colour change nobody has to react to.
+  */
+  .timer{
+    display:inline-flex; align-items:center; gap:0.5em; cursor:pointer;
+    font-family:var(--headFont); font-weight:700; user-select:none;
+    background:rgba(255,255,255,0.08); border:0.06em solid rgba(255,255,255,0.22);
+    border-radius:0.4em; padding:0.28em 0.7em; margin-top:0.5em;
+    transition:background .3s, border-color .3s, color .3s;
+  }
+  section.light .timer{ background:rgba(26,27,38,0.05); border-color:rgba(26,27,38,0.18); color:var(--textDark); }
+  /* Two timers side by side, for a phase that is really two activities.
+     wrap so a narrow projector stacks them rather than clipping the second. */
+  .timer-row{ display:flex; gap:0.9em; flex-wrap:wrap; align-items:flex-start; }
+  .timer .clock{ font-size:1.35em; font-variant-numeric:tabular-nums; }
+  .timer .hint{ font-size:0.6em; font-weight:400; opacity:0.72; }
+  .timer.running{ border-color:var(--accent); }
+  .timer.warn{ background:rgba(224,175,104,0.20); border-color:var(--amber); color:var(--amber); }
+  .timer.warn .hint{ color:var(--amber); }
+  .timer.over{ background:rgba(247,118,142,0.22); border-color:var(--red); color:var(--red); }
+  .timer.over .hint{ color:var(--red); }
+
+  /* These have to be repeated at higher specificity for light slides, which is
+     every content slide in the deck. `section.light .timer` above is (0,2,1)
+     and plain `.timer.over` is only (0,2,0), so without these the state colours
+     silently lose to the light-slide default: the class is applied, the clock
+     stops, and it stays the same grey as before. Found by reading computed
+     style on a real slide, not from the markup, which looked correct. */
+  section.light .timer.running{ border-color:var(--accent); }
+  section.light .timer.warn{ background:rgba(224,175,104,0.22); border-color:var(--amber); color:#8a5a00; }
+  section.light .timer.warn .hint{ color:#8a5a00; }
+  section.light .timer.over{ background:rgba(247,118,142,0.20); border-color:var(--red); color:#b3123c; }
+  section.light .timer.over .hint{ color:#b3123c; }
+
+  /* ===================== PHASE TIMER =====================
+    One clock that spans several consecutive slides, so a stretch of related
+    slides (the reading check and each question it surfaced) shares a single
+    countdown instead of restarting on every slide.
+
+    It lives outside .slides and is position:fixed, deliberately: .slides
+    carries reveal's scaling transform, so anything inside it that tries to
+    pin itself to a corner fights that transform and drifts at other window
+    sizes. Fixed to the viewport is immune.
+
+    Two resting places. On the slide that opens the phase it sits large and
+    centred under the content, because there it IS the subject. On every later
+    slide it shrinks into the bottom-right so the slide's own content owns the
+    space. Moving between them is one class change, and the transition below
+    does the travel. */
+  #phase-timer{
+    position:fixed; z-index:40; display:none;
+    align-items:center; gap:0.55em; cursor:pointer; user-select:none;
+    font-family:var(--headFont); font-weight:700;
+    background:rgba(26,27,38,0.06); border:2px solid rgba(26,27,38,0.20);
+    border-radius:0.45em; color:var(--textDark);
+    transition:left .45s cubic-bezier(.4,0,.2,1), top .45s cubic-bezier(.4,0,.2,1),
+               transform .45s cubic-bezier(.4,0,.2,1), opacity .3s,
+               background .3s, border-color .3s, color .3s;
+  }
+  #phase-timer.on{ display:inline-flex; }
+  #phase-timer .clock{ font-variant-numeric:tabular-nums; }
+  #phase-timer .hint{ font-weight:400; opacity:0.7; }
+  /* hero: centred along the bottom, large.
+     Pinned to the bottom edge rather than a percentage of the height: reveal
+     centres slide content vertically, so a slide with more bullets grows
+     downward and a percentage-positioned timer ends up sitting on top of the
+     last line. Measured: at 78% it overlapped the third bullet by 57px. */
+  #phase-timer.hero{
+    left:50%; top:calc(100vh - 4.6rem); transform:translate(-50%,-50%) scale(1);
+    padding:0.3em 0.85em; font-size:30px;
+  }
+  #phase-timer.hero .clock{ font-size:1.3em; }
+  #phase-timer.hero .hint{ font-size:0.55em; }
+  /* mini: parked bottom-LEFT, out of the content's way.
+     Not bottom-right: that corner already holds reveal's own navigation arrows
+     and the slide-number badge, and the timer landed on top of both. Bottom
+     left is empty on every slide in the cadence. */
+  #phase-timer.mini{
+    left:1.4rem; top:calc(100vh - 3.6rem);
+    transform:translate(0,-50%) scale(1);
+    padding:0.25em 0.6em; font-size:20px;
+  }
+  #phase-timer.mini .clock{ font-size:1.15em; }
+  #phase-timer.mini .hint{ font-size:0.5em; }
+  #phase-timer.running{ border-color:var(--accent); }
+  #phase-timer.warn{ background:rgba(224,175,104,0.22); border-color:var(--amber); color:var(--amber); }
+  #phase-timer.over{ background:rgba(247,118,142,0.24); border-color:var(--red); color:var(--red); }
+
+  .reveal .slide-number{ font-size:0.5em; }
+
+  /* ===================== EDITABLE WORD FIELD =====================
+    The exit-ticket "word on the board" blank is directly editable in the
+    slide, for a room with no physical board, or as a backup if the word was
+    never written up. Click it and type; it is a real contenteditable, not a
+    form field, so reveal's own keyboard shortcuts stay disabled while it has
+    focus (reveal checks for exactly this before acting on a keypress).
+    Persisted to localStorage per deck, so a reload mid-class does not lose it.
+  */
+  .wordblank{
+    outline:none; cursor:text; display:inline-block; min-width:3em;
+    padding:0 0.15em; border-bottom:0.07em dashed var(--accent);
+  }
+  .wordblank:empty::before{ content:attr(data-placeholder); opacity:0.45; font-weight:400; }
+  .wordblank:focus{ border-bottom-style:solid; }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<section>
+<div class="bars"><div></div><div></div><div></div></div>
+<h1>LAB 01: <span class="accent">First Commit, First Push</span></h1>
+<p class="subtitle">You have something worth saving. Today you save it properly.</p>
+<aside class="notes">First lab of the term, so a chunk of this hour is about the room settling rather than git. Start on time anyway.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>What You Are Doing Today</h2>
+<ul><li>Tell git which files to ignore, with a <span class='accent'>.gitignore</span></li><li>Turn the project folder into a repository</li><li>Stage and commit everything, once</li><li>Create a public GitHub repo and push to it, in one command</li><li>Confirm it landed, then submit <span class='accent'>github.json</span> to Gradescope</li></ul>
+<p class="small">The full instructions are in Canvas, under Lab 01.
+This is the shape, not the detail.</p>
+<aside class="notes">Five things, and they are in a strict order: each one fails confusingly if the one before it was skipped.
+
+The whole lab is maybe fifteen minutes of typing for someone whose environment works. Budget the rest for the environment, authentication, and the people who have not started.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Work in <span class="accent">2s and 3s</span></h2>
+<p>Find one or two other people and work together. Threes are fine, and on an
+odd day they are expected.</p>
+<p class="small">Everyone submits their own work. Working together means
+talking through what a command actually did, not one person typing while the
+others watch.</p>
+<aside class="notes">Say this out loud rather than pointing at the slide.
+Students default to working alone in lab because it feels like homework.
+
+Watch for the group where one person drives the whole hour. Ask the quiet one
+to explain what just happened, kindly. If they cannot, that group needs to slow
+down, not speed up.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Container Still Not Working?</h2>
+<p><strong>Put your hand up now.</strong> That is what we are here for, and
+several of you are in the same position.</p>
+<p class="small">But if it is going to take a while, <strong>get the lab
+done first</strong>. You can install Node and Git directly on your machine,
+and both are written up in Canvas. Finish the lab, then we fix the container
+with whatever time is left.</p>
+<aside class="notes">This is the slide that matters most today.
+
+Roughly a quarter of the room could not get a route running on Tuesday because
+of the container, and Lab 1 is due tonight. The order of operations is
+deliberate: unblock them for the lab first, fix the container second. A student
+who leaves with a working container and an unsubmitted lab has had a worse
+morning than one who leaves with the reverse.
+
+The two pages are "Installing Node.js Locally" and "Installing Git Locally",
+both in Canvas. Git is the one that matters for this lab.
+
+If more than a handful are stuck, do it as a group at the front rather than
+one laptop at a time.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Today's Word</h2>
+<p class="subtitle">It is on the board. You will need it for the exit ticket.</p>
+<div class="callout"><strong>Write it down now.</strong> The exit ticket asks
+for it, and it is not posted anywhere online.</div>
+<aside class="notes">WRITE THE WORD ON THE BOARD BEFORE ANYONE ARRIVES. It is
+the only part of this that cannot be done from a laptop elsewhere, and it is
+what makes the exit ticket a record of attendance rather than a form.
+
+Pick something short and unambiguous. Avoid anything that could be misheard or
+spelled two ways.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Start with <span class="accent">.gitignore</span></h2>
+<pre><code class="language-text" data-trim>
+node_modules/
+.env
+github.json
+</code></pre><p class="small">Before <code>git init</code>, not after. Untracking something later is much more work than never tracking it.</p>
+<aside class="notes">The single most common way this lab goes wrong: committing node_modules. It is thousands of files, the push takes forever, and unpicking it is a genuinely hard git exercise that is not what today is about.
+
+If someone has already done it, the fastest fix is to delete the .git directory and start the lab again. Say that plainly rather than teaching git rm --cached to a student on their first day of version control.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2><span class="accent">init</span>, then look before you commit</h2>
+<pre><code class="language-bash" data-trim>
+git init
+git status
+</code></pre><p class="small">Expect <code>server.js</code> and <code>package.json</code> under untracked files. <strong>Not</strong> <code>node_modules/</code>. If you see it, the .gitignore is wrong or in the wrong folder.</p>
+<aside class="notes">Make them actually run git status and read it. This is the checkpoint that catches the .gitignore mistake before it becomes a commit.
+
+Common cause when node_modules still shows: the .gitignore was saved in the parent folder, or saved as gitignore.txt by an editor on Windows.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Stage and <span class="accent">commit</span></h2>
+<pre><code class="language-bash" data-trim>
+git add .
+git commit -m &quot;initial Express server with two routes&quot;
+</code></pre>
+<aside class="notes">If git refuses with a message about identity, they never set user.name and user.email. That is on the Installing Git page in Canvas, and it matters beyond today: commits stamped with the wrong address do not count as their work when sprints are graded.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Create the repo and <span class="accent">push</span></h2>
+<pre><code class="language-bash" data-trim>
+gh repo create web-server --public \
+  --source=. --remote=origin --push
+</code></pre><p class="small">One command. It makes the GitHub repository, wires it up as <code>origin</code>, and pushes.</p>
+<aside class="notes">This is where authentication bites. If gh is not logged in, gh auth login and follow the browser prompts. Have them run gh auth status first if you suspect it.
+
+Anyone working outside the container needs the GitHub CLI installed, or they can create the repo in the browser and push with plain git remote add and git push. Either is fine today.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Confirm, then <span class="accent">submit</span></h2>
+<pre><code class="language-bash" data-trim>
+git log --oneline
+gh browse
+</code></pre><p class="small">Then make <code>github.json</code> with your repository URL and upload it to Gradescope.</p>
+<aside class="notes">Do not let anyone leave on 'it pushed'. Make them open gh browse and see server.js on the page. A push that went to the wrong place looks identical from the terminal.
+
+Then check they actually submitted to Gradescope. Every term, people finish the work and forget the submission.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Before You Leave</h2>
+<ul><li>Your repo opens in the browser and <span class='accent'>server.js</span> is visible on the page</li><li><span class='accent'>git log</span> shows your commit</li><li><span class='accent'>github.json</span> is uploaded to Gradescope</li><li>The lab exit ticket is submitted, with today's word</li></ul>
+<aside class="notes">Run this list out loud in the last ten minutes. The Gradescope upload is the one people miss, because the work feels finished once GitHub shows the code.
+
+Anyone who is not going to finish: tell them it is due tonight, point them at office hours, and make sure they leave knowing exactly which step they are stuck on.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Lab Exit Ticket</h2>
+<p>In Canvas, under Lab 01. It takes two minutes.</p>
+<ul>
+<li>Today's word from the board</li>
+<li>Who you worked with, full names as they appear in Canvas, and their UMass
+email addresses</li>
+<li>One short reflection on the lab</li>
+<li>Anything you are still unsure about, which is optional and genuinely read</li>
+</ul>
+<div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint">wrap up</span></div>
+<aside class="notes">Everyone submits their own, including anyone who worked
+alone. Ask for the Canvas name rather than a nickname; matching "Sam" to a
+roster of sixty is guesswork.
+
+The last question is where next week's FAQ entries come from, so say plainly
+that it is read and acted on rather than collected.</aside>
+</section>
+
+<section>
+<div class="bars"><div></div><div></div><div></div></div>
+<h2>That is version control</h2>
+<p class="subtitle">Every sprint from here runs through exactly this.</p>
+<aside class="notes">Worth one sentence: what they just did is the same sequence they will use for every team contribution for the rest of the term. Nothing about it gets more complicated, there is just more of it.</aside>
+</section>
+
+</div>
+</div>
+
+<script src="../../../../vendor/reveal/dist/reveal.js"></script>
+<script src="../../../../vendor/reveal/plugin/notes/notes.js"></script>
+<script src="../../../../vendor/reveal/plugin/highlight/highlight.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true, controls: true, progress: true, center: true, slideNumber: true,
+    plugins: [ RevealNotes, RevealHighlight ]
+  });
+
+  /* Timer wiring. Each .timer carries data-minutes. State lives on the element,
+     so several timers on different slides never interfere, and returning to a
+     slide leaves its timer exactly as it was left. */
+  document.querySelectorAll('.timer').forEach(function(el){
+    var total = Math.round(parseFloat(el.dataset.minutes) * 60);
+    var left = total, id = null, state = 'idle';
+    var clock = el.querySelector('.clock'), hint = el.querySelector('.hint');
+
+    function fmt(s){
+      return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+    }
+    function paint(){
+      clock.textContent = fmt(Math.max(left, 0));
+      el.classList.toggle('warn', left <= total*0.25 && left > 0);
+      el.classList.toggle('over', left <= 0);
+      el.classList.toggle('running', state === 'running');
+      hint.textContent = state === 'done'    ? 'time is up, dbl click resets'
+                       : state === 'running' ? 'click to pause'
+                       : state === 'paused'  ? 'paused, double click resets'
+                       : 'click to start';
+    }
+    /* Halt at 0:00 rather than counting up. An earlier version ran into
+       overtime so the overrun was visible, but on a projector a growing +2:14
+       reads as a timer that is still asking for more time, when the intent is
+       that the activity is over. Red and frozen says done. */
+    function tick(){
+      left--;
+      if (left <= 0){ left = 0; stop(); state = 'done'; }
+      paint();
+    }
+    function stop(){ if (id){ clearInterval(id); id = null; } }
+
+    /* Single click toggles run/pause. Double click resets.
+       Keep these two jobs separate: an earlier version overloaded one click to
+       also mean "reset", which made a finished timer impossible to reset at all,
+       because once it was paused no branch could reach the reset. */
+    el.addEventListener('click', function(){
+      if (state === 'done') return;   /* only a reset gets you out of done */
+      if (state === 'running'){ stop(); state = 'paused'; }
+      else { stop(); id = setInterval(tick, 1000); state = 'running'; }
+      paint();
+    });
+    el.addEventListener('dblclick', function(){
+      stop(); left = total; state = 'idle'; paint();
+    });
+    paint();
+  });
+
+  /* Editable word field. Keyed by the deck's own title, so each unit's word
+     persists independently in the same browser and reloading mid-class does
+     not lose what was typed. Enter blurs rather than inserting a newline,
+     since this is one line of text, not a note. */
+  document.querySelectorAll('.wordblank').forEach(function(el){
+    var key = 'lecture-word:' + document.title;
+    var saved = localStorage.getItem(key);
+    if (saved) el.textContent = saved;
+    el.addEventListener('input', function(){
+      localStorage.setItem(key, el.textContent);
+    });
+    el.addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){ e.preventDefault(); el.blur(); }
+    });
+  });
+
+  /* ===================== PHASE TIMER =====================
+     One clock across a run of consecutive slides, so the reading-check
+     discussion is timed as a whole rather than restarting on each question.
+
+     A section opts in with data-phase-timer="<minutes>". The slide that opens
+     the run also carries data-phase-timer-start, which is what makes it sit
+     large and centred there and small in the corner afterwards.
+
+     Deliberately ONE element reused, not one per slide. The countdown is then
+     continuous by construction: there is no state to hand between slides, and
+     no way for two copies to disagree about how much time is left. Moving it
+     is a class swap; the CSS transition does the travel and the resize. */
+  (function(){
+    var host = document.querySelector('.reveal');
+    if (!host) return;
+    var el = document.createElement('div');
+    el.id = 'phase-timer';
+    el.innerHTML = '<span class="clock"></span><span class="hint"></span>';
+    host.appendChild(el);
+
+    var clock = el.querySelector('.clock'), hint = el.querySelector('.hint');
+    var total = 0, left = 0, id = null, state = 'idle';
+
+    function fmt(s){
+      return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+    }
+    function paint(){
+      clock.textContent = fmt(Math.max(left, 0));
+      el.classList.toggle('warn', left <= total*0.25 && left > 0);
+      el.classList.toggle('over', left <= 0);
+      el.classList.toggle('running', state === 'running');
+      hint.textContent = state === 'done'    ? 'time is up, dbl click resets'
+                       : state === 'running' ? 'click to pause'
+                       : state === 'paused'  ? 'paused, dbl click resets'
+                       : 'click to start';
+    }
+    function stop(){ if (id){ clearInterval(id); id = null; } }
+    /* Halts at 0:00 in red, same as the inline .timer elements. */
+    function tick(){
+      left--;
+      if (left <= 0){ left = 0; stop(); state = 'done'; }
+      paint();
+    }
+
+    el.addEventListener('click', function(){
+      if (state === 'done') return;
+      if (state === 'running'){ stop(); state = 'paused'; }
+      else { stop(); id = setInterval(tick, 1000); state = 'running'; }
+      paint();
+    });
+    el.addEventListener('dblclick', function(){
+      stop(); state = 'idle'; left = total; paint();
+    });
+
+    function sync(){
+      var s = Reveal.getCurrentSlide();
+      var mins = s && s.dataset ? s.dataset.phaseTimer : null;
+      if (!mins){ el.classList.remove('on','hero','mini'); return; }
+
+      var t = Math.round(parseFloat(mins) * 60);
+      /* Only (re)arm on the slide that STARTS the phase, and only while it has
+         not been started yet. Without the state check, stepping back to the
+         first slide mid-discussion would silently wipe the running clock. */
+      if (s.hasAttribute('data-phase-timer-start') && state === 'idle'){
+        total = t; left = t;
+      } else if (!total){
+        total = t; left = t;
+      }
+      el.classList.add('on');
+      var hero = s.hasAttribute('data-phase-timer-start');
+      el.classList.toggle('hero', hero);
+      el.classList.toggle('mini', !hero);
+      paint();
+    }
+
+    Reveal.on('ready', sync);
+    Reveal.on('slidechanged', sync);
+  })();
+</script>
+</body>
+</html>

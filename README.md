@@ -9,4 +9,4 @@ every deploy. The sources live in the course project:
 - the site is assembled by `course/lectures/publish_site.py`
 - this repo is synced by `course/lectures/deploy_site.sh`
 
-Speaker notes are stripped before publishing.
+Speaker notes are stripped before publishing, except on the lab decks,\nwhich are the staff guide and live under an unlinked, robots-disallowed path.
