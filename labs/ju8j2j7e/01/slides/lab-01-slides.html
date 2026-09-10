@@ -317,6 +317,24 @@ down, not speed up.</aside>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
+<h2>How You <span class="accent">Submit</span></h2>
+<ol><li>Make <span class='accent'>github.json</span> in your project folder, with your repository URL inside it.</li><li>Upload that one file to <strong>Gradescope</strong>, through the Lab 1 link in Canvas.</li></ol>
+<div class="callout"><strong>Pushing to GitHub is not submitting.</strong>
+The code on GitHub is the work. The upload to Gradescope is what records it.</div>
+<p class="small"><span class='accent'>github.json</span> is in your .gitignore on purpose: it is your submission artifact, not part of the project, so it never gets committed. The lab is due tonight at 11:59 PM.</p>
+<aside class="notes">Say this one out loud. Do not just advance past it. Every term people do all of the work and lose the credit at the last step, and the reason it keeps happening is that it does not feel like a step: once GitHub shows the code, the lab feels finished.
+
+Two things students get wrong here:
+
+- They try to commit github.json, or they are confused that it is in the .gitignore. It is deliberately ignored. It holds the repo URL and exists only to be uploaded; it is not part of the project.
+- They put the repository NAME in it rather than the full URL. The autograder reads the URL and clones it, so a bare name fails with nothing obviously wrong on their side.
+
+Before anyone leaves, actually ask whether they submitted, rather than whether they finished. Gradescope shows a submission timestamp; that is the thing to confirm.
+
+If Gradescope will not accept it, do not let them leave planning to sort it out later. Have them message Tim through the Canvas Inbox while they are still in the room.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
 <h2>Container Still Not Working?</h2>
 <p><strong>Put your hand up now.</strong> That is what we are here for, and
 several of you are in the same position.</p>
