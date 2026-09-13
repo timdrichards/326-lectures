@@ -282,6 +282,27 @@
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
+<h2>First: <span class="accent">where you are</span></h2>
+<p>All your work this semester lives in one repository: the
+<span class="accent">web-server</span> folder inside your gantry workspace.</p>
+<pre><code class="language-bash">git rev-parse --show-toplevel</code></pre>
+<p class="small">That must end in <strong>/web-server</strong>. If it prints your
+gantry workspace, or says "not a git repository", fix that before starting. The
+steps are in Canvas under Lab 01.</p>
+<aside class="notes">Ten seconds, out loud, every week. Do not skip it because
+it feels repetitive to you; it is not repetitive to the student who has been
+quietly wrong since Lab 01.
+
+Have them actually run it rather than nod. The two wrong outputs are the gantry
+workspace path, which means the repo is rooted too high, and "not a git
+repository", which means they are standing outside it.
+
+Why it matters, if anyone asks: the autograder clones their repo and reads
+server.js from the top of it. A repo rooted one level too high does not fail
+loudly, it just scores about 40 on a lab that was actually finished.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
 <h2>What This Lab Is About</h2>
 <p>You already have an Express server that runs. Today you put it under version control and get it onto GitHub properly: ignore what should not be tracked, make one real commit, and push it to a repository of your own.</p>
 <p><strong>This is the same sequence every sprint and the whole team project runs through. Nothing about it gets more complicated later. There is just more of it.</strong></p>
