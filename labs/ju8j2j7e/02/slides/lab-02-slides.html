@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta name="robots" content="noindex, nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LAB 02: Branching and the Pull Request -- COMPSCI 326</title>
+
+<!--
+  Live, in-person lecture deck. Distinct from course/units/unit-NN/slides/,
+  which holds the async recorded overview (.pptx). This deck is presented in the
+  room and assumes the unit has already been read; see lecture-day-template.md.
+
+  DO NOT HAND-EDIT A GENERATED DECK. Edit the UNITS list in build_lectures.py and
+  re-run it, or the next rebuild silently discards the change.
+
+  TYPOGRAPHY, and why it is set explicitly:
+  reveal.js ships layout in reveal.css but all type in its *theme* CSS, which
+  this deck deliberately does not load (it has its own theme). Without a theme,
+  `.reveal` inherits the browser's 16px default on a 960x700 virtual canvas, and
+  body text projected at roughly 23px, about a third of legible. Measured, not
+  assumed. `--base` below restores a projection-appropriate scale; reveal's own
+  default is 42px and 34px here buys back a little content density. Every
+  component sizes in `em` off that, so changing one number rescales the deck.
+-->
+
+<link rel="stylesheet" href="../../../../vendor/reveal/dist/reveal.css">
+<link rel="stylesheet" href="../../../../vendor/reveal/plugin/highlight/monokai.css">
+
+<style>
+  /* ===================== CHROME: theme, do not edit per-lecture ===================== */
+  :root{
+    --dark:      #1A1B26;
+    --mid:       #3D59A1;
+    --midLight:  #A9B8E8;
+    --accent:    #9ECE6A;
+    --lightBg:   #F4F6FB;
+    --card:      #FFFFFF;
+    --textDark:  #1A1B26;
+    --muted:     #5C6B7A;
+    --white:     #FFFFFF;
+    --codeBg:    #232430;
+    --codeText:  #E4E7EF;
+    --red:       #F7768E;
+    --amber:     #E0AF68;
+    --green:     #9ECE6A;
+    --headFont:  Consolas, "SF Mono", Menlo, Monaco, monospace;
+    --bodyFont:  Calibri, "Segoe UI", -apple-system, BlinkMacSystemFont, sans-serif;
+    --base:      34px;   /* projection base; see the note above before changing */
+  }
+
+  .reveal{ font-family: var(--bodyFont); font-size: var(--base); }
+  .reveal h1,.reveal h2,.reveal h3{ font-family: var(--headFont); font-weight:700;
+    letter-spacing:-0.01em; line-height:1.15; margin:0 0 0.5em; text-transform:none; }
+  .reveal h1{ font-size: 2.05em; }
+  .reveal h2{ font-size: 1.5em; }
+  .reveal h3{ font-size: 1.1em; }
+  .reveal p, .reveal li{ font-size: 1em; line-height: 1.45; }
+  /* Lists are NEVER centred. reveal centres all slide content, which leaves
+     ragged-both-sides bullets that read as a layout bug. Centre the list BLOCK,
+     left-align the text inside it. */
+  .reveal ul, .reveal ol{ display:block; text-align:left;
+    max-width:26em; margin:0.4em auto; padding-left:1.1em; }
+  .reveal li{ margin-bottom:0.45em; text-align:left; }
+  .reveal .left{ text-align:left; max-width:26em; margin-left:auto; margin-right:auto; }
+  /* The recap slide carries up to six items, so tighten the default paragraph
+     rhythm or a longer unit overflows the 700px canvas. */
+  .reveal .recap{ max-width:30em; }
+  .reveal .recap p{ margin:0 0 0.55em; line-height:1.25; }
+  .reveal .recap .small{ opacity:0.8; }
+
+  /* .biglink was removed 2026-09-03 along with the standalone activity
+     handouts. The brief now lives in Canvas as a date-gated assignment, so the
+     deck names where it is rather than linking out. */
+  .reveal .subtitle{ font-size: 0.92em; }
+  .reveal .small{ font-size: 0.78em; }
+  .reveal .tiny{ font-size: 0.62em; line-height: 1.35; }
+
+  /*
+    Dark is the default for every slide. reveal paints the background on a
+    dedicated .slide-background div, NOT on <section>, which only fills its own
+    content box; an earlier draft set `background` on section and every slide
+    rendered as a short coloured band. Styling .slide-background makes dark the
+    true default: an unmarked slide falls through to this rule, and one that
+    sets data-background-color gets an inline style that overrides it naturally.
+  */
+  .reveal .slide-background{ background-color: var(--dark); }
+  .reveal .slides section{ color: var(--white); }
+  .reveal .slides section h1,
+  .reveal .slides section h2,
+  .reveal .slides section h3{ color: var(--white); }
+  .reveal .slides section .subtitle{ color: var(--midLight); }
+  .reveal .slides section .accent{ color: var(--accent); }
+
+  /* Light variant: only slides explicitly marked class="light" */
+  .reveal .slides section.light{ color: var(--textDark); }
+  .reveal .slides section.light h1,
+  .reveal .slides section.light h2,
+  .reveal .slides section.light h3{ color: var(--textDark); }
+  .reveal .slides section.light .subtitle,
+  .reveal .slides section.light .muted{ color: var(--muted); }
+
+  /* Motif: three stacked rounded bars */
+  .bars{ display:flex; flex-direction:column; gap:0.14em; width:1.9em; margin:0 auto 0.7em; }
+  .bars div{ height:0.34em; border-radius:0.17em; }
+  .bars div:nth-child(1){ background: var(--accent); width:100%; }
+  .bars div:nth-child(2){ background: var(--mid);      width:72%; }
+  .bars div:nth-child(3){ background: var(--midLight); width:46%; }
+
+  /* Agenda phase cards */
+  .phase-grid{ display:grid; grid-template-columns: repeat(4,1fr); gap:0.7em; margin-top:1em; }
+  .phase-card{ background:var(--card); border-radius:0.4em; padding:0.7em 0.6em;
+    box-shadow:0 2px 10px rgba(26,27,38,0.08); text-align:left; }
+  .phase-card .num{ font-family:var(--headFont); color:var(--mid); font-size:1.1em; font-weight:700; }
+  .phase-card .time{ font-family:var(--headFont); color:var(--accent2,#2F7D32); font-size:0.72em; margin:0.1em 0 0.3em; }
+  .phase-card .label{ font-size:0.74em; line-height:1.3; color:var(--textDark); }
+
+  /* Code / terminal card */
+  .terminal-card{ background:var(--codeBg); color:var(--codeText); border-radius:0.35em;
+    padding:0.7em 0.9em; text-align:left; font-family:var(--headFont);
+    font-size:0.82em; line-height:1.5; }
+  .terminal-card .dots{ display:flex; gap:0.25em; margin-bottom:0.5em; }
+  .terminal-card .dots span{ width:0.42em; height:0.42em; border-radius:50%; display:inline-block; }
+
+  /* reveal's highlight plugin renders into pre>code; size it for the room.
+     text-align MUST be reset: reveal centres slide content, which silently
+     centres every line of a code block and destroys the indentation. It looks
+     fine in source and wrong on screen, so it is only ever caught by looking. */
+  .reveal pre{ width:100%; box-shadow:none; margin:0.5em 0; font-size:0.72em;
+    text-align:left; }
+  .reveal pre code{ padding:0.9em 1.1em; border-radius:0.35em; max-height:none;
+    line-height:1.45; font-family:var(--headFont); text-align:left;
+    white-space:pre; overflow-x:auto; }
+
+  /* Ligatures OFF on anything a student types. Added 2026-09-14 while checking
+     the Lab 02 deck, where `gh pr view --web` projected as `gh pr view –web`:
+     the text is correct and only the glyph is joined, which is exactly what
+     makes it dangerous. A student reading a command off the screen and typing
+     one dash gets an error that looks nothing like the cause. Harmless on a
+     deck nobody types from, so it is set globally rather than per deck. */
+  .reveal pre code, .reveal code, .reveal .terminal-card{
+    font-variant-ligatures:none; font-feature-settings:"liga" 0,"calt" 0; }
+
+  .options{ display:grid; grid-template-columns:1fr 1fr; gap:0.6em; max-width:24em; margin:0 auto; }
+  .opt{ background:var(--card); border-radius:0.35em; padding:0.55em 0.7em; text-align:left;
+    color:var(--textDark); font-size:0.8em; }
+
+  .callout{ border-left:0.18em solid var(--accent); padding:0.35em 0 0.35em 0.7em;
+    text-align:left; margin:0.7em auto; max-width:26em; }
+
+  /* Dense variant, for a slide with more items than the default callout budget
+     assumes (the exit ticket, once it carries 4+ questions). Smaller type and
+     tighter spacing, not smaller max-width, since narrowing the box just trades
+     height for more wraps and makes the overflow worse, not better. */
+  .callout.dense{ font-size:0.72em; padding:0.3em 0 0.3em 0.6em; margin:0.5em auto;
+    max-width:34em; }
+  .callout.dense p{ margin-bottom:0.4em; line-height:1.3; }
+
+  /* ===================== TIMER =====================
+    Every timed thing in the room gets one: reading check, activity, role swap,
+    share back, discussion, exit ticket. A discussion without a visible clock
+    reliably eats the following phase.
+
+    Click (or tap) to start, click to pause, click when finished to reset.
+    Deliberately NOT bound to a key: reveal already owns the keyboard, and a
+    space-bar timer would fire every time the deck advanced. Deliberately
+    silent: an alarm in a room of people mid-conversation is worse than a
+    colour change nobody has to react to.
+  */
+  .timer{
+    display:inline-flex; align-items:center; gap:0.5em; cursor:pointer;
+    font-family:var(--headFont); font-weight:700; user-select:none;
+    background:rgba(255,255,255,0.08); border:0.06em solid rgba(255,255,255,0.22);
+    border-radius:0.4em; padding:0.28em 0.7em; margin-top:0.5em;
+    transition:background .3s, border-color .3s, color .3s;
+  }
+  section.light .timer{ background:rgba(26,27,38,0.05); border-color:rgba(26,27,38,0.18); color:var(--textDark); }
+  /* Two timers side by side, for a phase that is really two activities.
+     wrap so a narrow projector stacks them rather than clipping the second. */
+  .timer-row{ display:flex; gap:1.4em; flex-wrap:wrap; align-items:flex-start; }
+  .timer-unit{ display:inline-block; margin-top:0.5em; }
+  /* The caption says what the time is FOR. It is separate from .hint, which the
+     timer JS overwrites with the run/pause state on every repaint. */
+  .timer-cap{
+    font-family:var(--headFont); font-size:0.52em; font-weight:700;
+    letter-spacing:0.06em; text-transform:uppercase; opacity:0.72;
+    margin:0 0 0.25em 0.15em;
+  }
+  .timer-unit .timer{ margin-top:0; }
+  .timer .clock{ font-size:1.35em; font-variant-numeric:tabular-nums; }
+  .timer .hint{ font-size:0.6em; font-weight:400; opacity:0.72; }
+  .timer.running{ border-color:var(--accent); }
+  .timer.warn{ background:rgba(224,175,104,0.20); border-color:var(--amber); color:var(--amber); }
+  .timer.warn .hint{ color:var(--amber); }
+  .timer.over{ background:rgba(247,118,142,0.22); border-color:var(--red); color:var(--red); }
+  .timer.over .hint{ color:var(--red); }
+
+  /* These have to be repeated at higher specificity for light slides, which is
+     every content slide in the deck. `section.light .timer` above is (0,2,1)
+     and plain `.timer.over` is only (0,2,0), so without these the state colours
+     silently lose to the light-slide default: the class is applied, the clock
+     stops, and it stays the same grey as before. Found by reading computed
+     style on a real slide, not from the markup, which looked correct. */
+  section.light .timer.running{ border-color:var(--accent); }
+  section.light .timer.warn{ background:rgba(224,175,104,0.22); border-color:var(--amber); color:#8a5a00; }
+  section.light .timer.warn .hint{ color:#8a5a00; }
+  section.light .timer.over{ background:rgba(247,118,142,0.20); border-color:var(--red); color:#b3123c; }
+  section.light .timer.over .hint{ color:#b3123c; }
+
+  /* ===================== PHASE TIMER =====================
+    One clock that spans several consecutive slides, so a stretch of related
+    slides (the reading check and each question it surfaced) shares a single
+    countdown instead of restarting on every slide.
+
+    It lives outside .slides and is position:fixed, deliberately: .slides
+    carries reveal's scaling transform, so anything inside it that tries to
+    pin itself to a corner fights that transform and drifts at other window
+    sizes. Fixed to the viewport is immune.
+
+    Two resting places. On the slide that opens the phase it sits large and
+    centred under the content, because there it IS the subject. On every later
+    slide it shrinks into the bottom-right so the slide's own content owns the
+    space. Moving between them is one class change, and the transition below
+    does the travel. */
+  #phase-timer{
+    position:fixed; z-index:40; display:none;
+    align-items:center; gap:0.55em; cursor:pointer; user-select:none;
+    font-family:var(--headFont); font-weight:700;
+    background:rgba(26,27,38,0.06); border:2px solid rgba(26,27,38,0.20);
+    border-radius:0.45em; color:var(--textDark);
+    transition:left .45s cubic-bezier(.4,0,.2,1), top .45s cubic-bezier(.4,0,.2,1),
+               transform .45s cubic-bezier(.4,0,.2,1), opacity .3s,
+               background .3s, border-color .3s, color .3s;
+  }
+  #phase-timer.on{ display:inline-flex; }
+  #phase-timer .clock{ font-variant-numeric:tabular-nums; }
+  #phase-timer .hint{ font-weight:400; opacity:0.7; }
+  /* hero: centred along the bottom, large.
+     Pinned to the bottom edge rather than a percentage of the height: reveal
+     centres slide content vertically, so a slide with more bullets grows
+     downward and a percentage-positioned timer ends up sitting on top of the
+     last line. Measured: at 78% it overlapped the third bullet by 57px. */
+  #phase-timer.hero{
+    left:50%; top:calc(100vh - 4.6rem); transform:translate(-50%,-50%) scale(1);
+    padding:0.3em 0.85em; font-size:30px;
+  }
+  #phase-timer.hero .clock{ font-size:1.3em; }
+  #phase-timer.hero .hint{ font-size:0.55em; }
+  /* mini: parked bottom-LEFT, out of the content's way.
+     Not bottom-right: that corner already holds reveal's own navigation arrows
+     and the slide-number badge, and the timer landed on top of both. Bottom
+     left is empty on every slide in the cadence. */
+  #phase-timer.mini{
+    left:1.4rem; top:calc(100vh - 3.6rem);
+    transform:translate(0,-50%) scale(1);
+    padding:0.25em 0.6em; font-size:20px;
+  }
+  #phase-timer.mini .clock{ font-size:1.15em; }
+  #phase-timer.mini .hint{ font-size:0.5em; }
+  #phase-timer.running{ border-color:var(--accent); }
+  #phase-timer.warn{ background:rgba(224,175,104,0.22); border-color:var(--amber); color:var(--amber); }
+  #phase-timer.over{ background:rgba(247,118,142,0.24); border-color:var(--red); color:var(--red); }
+
+  .reveal .slide-number{ font-size:0.5em; }
+
+  /* ===================== EDITABLE WORD FIELD =====================
+    The exit-ticket "word on the board" blank is directly editable in the
+    slide, for a room with no physical board, or as a backup if the word was
+    never written up. Click it and type; it is a real contenteditable, not a
+    form field, so reveal's own keyboard shortcuts stay disabled while it has
+    focus (reveal checks for exactly this before acting on a keypress).
+    Persisted to localStorage per deck, so a reload mid-class does not lose it.
+  */
+  .wordblank{
+    outline:none; cursor:text; display:inline-block; min-width:3em;
+    padding:0 0.15em; border-bottom:0.07em dashed var(--accent);
+  }
+  .wordblank:empty::before{ content:attr(data-placeholder); opacity:0.45; font-weight:400; }
+  .wordblank:focus{ border-bottom-style:solid; }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<section>
+<div class="bars"><div></div><div></div><div></div></div>
+<h1>LAB 02: <span class="accent">Branching and the Pull Request</span></h1>
+<p class="subtitle">Every sprint contribution this term goes through what you do today.</p>
+<div class="callout" style="border-left-color:var(--accent);max-width:30em;
+margin-top:1.1em"><p style="margin:0;font-size:1.15em"><strong>Organize into
+your teams</strong></p><p style="margin:0.2em 0 0;font-size:0.8em;opacity:0.85">
+See the Canvas announcement for where your team sits.</p></div>
+<aside class="notes">Second lab. The room should settle faster than last week, but a chunk of it is still fighting the container. Start on time and use the environment slide early.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>First: <span class="accent">where you are</span></h2>
+<p>Your <span class="accent">lab</span> work lives in one repository: the
+<span class="accent">web-server</span> folder in your gantry workspace. Unit work
+and anything you try out goes elsewhere in the workspace, not in here.</p>
+<pre><code class="language-bash">git rev-parse --show-toplevel</code></pre>
+<p class="small"><strong>That command answers one question: which repository
+am I standing in?</strong> It walks up from wherever you are until it finds the
+<code>.git</code> directory and prints the folder holding it, so it tells you
+where the repository actually starts, not just where your terminal is.</p>
+<p class="small">It must end in <strong>/web-server</strong>. Your gantry
+workspace means the repository starts too high; "not a git repository" means you
+are outside one. Fix either before starting, steps in Canvas under Lab 01.</p>
+<aside class="notes">Ten seconds, out loud, every week. Do not skip it because
+it feels repetitive to you; it is not repetitive to the student who has been
+quietly wrong since Lab 01.
+
+Have them actually run it rather than nod. The two wrong outputs are the gantry
+workspace path, which means the repo is rooted too high, and "not a git
+repository", which means they are standing outside it.
+
+Why it matters, if anyone asks: the autograder clones their repo and reads
+server.js from the top of it. A repo rooted one level too high does not fail
+loudly, it just scores about 40 on a lab that was actually finished.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>What This Lab Is About</h2>
+<p>You have a repository with your Express server in it. Today you add an About page on a <span class='accent'>branch</span> rather than straight onto main, open a <span class='accent'>pull request</span> proposing the change, and merge it.</p>
+<p>A pull request is how a change gets proposed and looked at before it reaches <span class='accent'>main</span>, so the branch everyone works from stays working.</p>
+<p><strong>This is the exact workflow every sprint contribution uses. Doing it alone on a small change now means the first time it matters is not the first time you have seen it.</strong></p>
+<p class="small">The commands are on the next few slides, and the full
+write-up is in Canvas under Lab 02. Use whichever you prefer.</p>
+<aside class="notes">Keep this short, ninety seconds. The deck carries the steps this week, so the room can start as soon as they understand the shape.
+
+WHAT THE HOUR ACTUALLY IS: branch, npm install ejs, two lines in server.js, one small view file, commit, push, PR, merge, submit. Twenty minutes for someone whose environment works.
+
+DO NOT READ THE STEP SLIDES ALOUD. They are there so a student who looks up gets the command instead of a slide telling them to look in Canvas. Leave the relevant one on screen and walk the room.
+
+THE THING THAT MAKES THIS LAB DIFFERENT FROM LAB 1: there is a concept in it. A student can complete every command and still not know what a branch is. When you stop at a group, the useful question is not whether it worked; it is what would happen to main if they deleted the branch right now.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>The Loop You Will Use <span class="accent">All Term</span></h2>
+<div style="display:flex;align-items:flex-start;gap:0.7em;margin-top:0.8em">
+<div class="phase-card" style="flex:1"><div class="num">1</div><div class="label">branch</div></div><div style="display:flex;flex-direction:column;gap:0.25em;flex:2.35"><div style="display:flex;gap:0.7em;border:0.14em dashed var(--mid);border-radius:0.5em;padding:0.5em 0.45em"><div class="phase-card" style="flex:1"><div class="num">2</div><div class="label">commit</div></div><div class="phase-card" style="flex:1"><div class="num">3</div><div class="label">push</div></div></div><div style="font-size:0.62em;color:var(--mid);font-weight:700;white-space:nowrap">&#8635; repeat as often as needed</div></div><div class="phase-card" style="flex:1"><div class="num">4</div><div class="label">pull request</div></div><div class="phase-card" style="flex:1"><div class="num">5</div><div class="label">merge</div></div>
+</div>
+<p class="small">A branch is a private line of work: commits on it do not touch main, so if it turns out wrong you delete it and nothing is lost. A pull request is the proposal to merge it, and it shows exactly which lines would change.</p>
+<p class="small"><strong>One commit is one change you could describe in a sentence.</strong> Adding the route is a commit. Adding the view is a commit. A whole afternoon is not. Commit when something works, push when you want it somewhere other than your laptop, and expect to go round that pair several times before the branch is ready.</p>
+<aside class="notes">Thirty seconds on this. Say the loop out loud once, and say that every sprint runs through exactly it.
+
+The line worth adding, because it is the one that makes branching feel worth the trouble rather than like extra ceremony: on a team, four people can be on four branches at once and none of them break each other's work. Alone today that benefit is invisible, which is exactly why the habit has to be built before the project starts.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Work With <span class="accent">Your Team</span></h2>
+<p>Sit with your project team, in your team's spot. The Canvas announcement has
+the map, and <strong>we keep the same arrangement all semester</strong> so we
+always know which team is where.</p>
+<p class="small">Everyone still submits their own work. Working together means
+talking through what a command actually did, not one person typing while the
+others watch.</p>
+<p class="small"><strong>If you already know Git and GitHub well, teach.</strong>
+Explaining it is how you find out which parts you only half know.
+<strong>If you are new to it, ask, and keep asking.</strong> Nobody here is
+behind, and we are in this room to help each other learn and succeed.</p>
+<aside class="notes">Get this done in the first two or three minutes, before
+anything else. It is slow the first week and quick every week after.
+
+Lowest team number on the left, then clockwise: up the left side, across the
+back, down the right. The announcement went out last night with a map for this
+section, so point at the room rather than re-explaining it.
+
+WHY IT IS WORTH THE TWO MINUTES, if anyone asks or if you need to sell it: these
+are the people they will be doing every sprint with, and for several teams this
+hour is the only time all week they are in the same room. Fixed spots also mean
+you can see at a glance who is missing, and you learn which team is which
+without asking.
+
+A team that is short today should still sit in its own spot rather than merging
+with a neighbour. Someone sitting alone in a team spot is exactly the signal
+worth having.
+
+Watch for the team where one person drives the whole hour. Ask a quiet one to
+explain what just happened, kindly. If they cannot, that team needs to slow
+down, not speed up.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Before You Start</h2>
+<div class="callout dense">
+<p><strong>1.</strong> <code>git status</code> says nothing to commit, working tree clean.</p><p><strong>2.</strong> <code>git branch</code> shows <code>* main</code>.</p><p><strong>3.</strong> Your repository is <strong>public</strong>, or the autograder cannot clone it.</p><p><strong>4.</strong> <code>gh</code> is logged in. If not: <code>gh auth login</code>.</p>
+</div>
+<pre><code class="language-bash" data-trim>
+gh repo view --json isPrivate --jq .isPrivate
+# prints false. if true:
+gh repo edit --visibility public --yes
+gh auth status
+</code></pre>
+<p class="small">All of this can be done in the GitHub web interface instead,
+and that is a real way to work. <strong>Do it at the command line anyway</strong>:
+that is the version that transfers to a server, to a script, and to every tool
+with no buttons.</p>
+<aside class="notes">Run these as a room before anyone starts, it takes a minute and it saves the hour.
+
+THE PRIVATE REPO IS THE ONE THAT MATTERS. It is silent: the lab works perfectly, the merge succeeds, and the autograder simply cannot clone it. gh repo edit --visibility public --yes fixes it.
+
+gh auth status catches the other silent one. An unauthenticated gh does not fail until gh pr create, five steps later, where the error reads as a problem with the pull request.
+
+A dirty working tree from last week is fine and does not need solving now; they can commit it to main first, or stash it.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>1. Branch first, <span class='accent'>then</span> build</h2>
+<p>Branch before you change anything, so every commit lands on it rather than on main. <strong>A branch is a place to be wrong safely</strong>: main keeps working while you experiment, and a bad idea is deleted rather than unpicked. On a team it is also what lets four people build four things at once.</p>
+<pre><code class="language-bash" data-trim>
+git checkout -b feature/about-page
+git branch
+</code></pre><pre><code class="language-bash" data-trim>
+npm install ejs
+</code></pre>
+<p class="small"><code>git branch</code> should now show the asterisk next to <code>feature/about-page</code>.</p>
+<aside class="notes">The order is the whole point and it is the most common thing to get backwards. Someone who edits first and branches later has their work on main already, which is recoverable but is not what today is teaching.
+
+If someone has already committed to main by mistake, the quickest honest fix in the room is: git checkout -b feature/about-page, then on main git reset --hard origin/main. Do that WITH them rather than telling them the command.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>2. Tell Express to render <span class='accent'>views</span></h2>
+<p>Two lines in <code>server.js</code>. The first goes just after <code>const app = express()</code>, the second alongside your other routes, before <code>app.listen</code>.</p>
+<pre><code class="language-javascript" data-trim>
+app.set(&quot;view engine&quot;, &quot;ejs&quot;);
+</code></pre><pre><code class="language-javascript" data-trim>
+app.get(&quot;/about&quot;, (req, res) =&gt; {
+  res.render(&quot;about&quot;, { title: &quot;About&quot; });
+});
+</code></pre>
+<p class="small"><code>res.render</code> looks for <code>views/about.ejs</code>. That file does not exist yet, so the route will error until the next step.</p>
+<aside class="notes">Two failures land here and they look the same from the browser.
+
+1. FORGETTING app.set. Express then has no view engine and res.render fails. The error names the module, not the missing setting, so it reads as an install problem.
+
+2. THE FILE IN THE WRONG PLACE. views/ must be at the top of the repository, beside server.js. A views folder one level up, or nested, gives 'Failed to lookup view'.
+
+Both are worth catching by asking them to read the error out loud rather than by reading their screen for them.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>3. Create <span class='accent'>views/about.ejs</span></h2>
+<p>Plain HTML. It is a template, so it can hold EJS later.</p>
+<pre><code class="language-html" data-trim>
+&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+  &lt;head&gt;&lt;title&gt;About&lt;/title&gt;&lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;About&lt;/h1&gt;
+    &lt;p&gt;What this project is.&lt;/p&gt;
+  &lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<p class="small">Restart with <code>node server.js</code> and open <code>localhost:3000/about</code> before you commit.</p>
+<aside class="notes">Make them actually load the page. A commit of a broken route is a worse outcome than being five minutes behind, and the restart is the step people skip: the server was already running, so nothing looks wrong.
+
+Restarting is not optional here even though the route was added a step ago. Node has the old file in memory.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>4. Commit and <span class='accent'>push the branch</span></h2>
+<p>Four files changed: the server, the new view, and the two package files <code>npm install</code> touched.</p>
+<pre><code class="language-bash" data-trim>
+git add server.js views/about.ejs
+git add package.json package-lock.json
+git commit -m &quot;add About page&quot;
+</code></pre><pre><code class="language-bash" data-trim>
+git push -u origin feature/about-page
+</code></pre>
+<p class="small"><code>-u</code> links this branch to the remote one, so later pushes on it are just <code>git push</code>.</p>
+<aside class="notes">git status before git add, every time. It is the checkpoint that catches node_modules before it becomes a commit, which is still the most expensive mistake available in this lab.
+
+If the push is rejected asking them to set an upstream, they dropped the -u. If it asks for a username and password, gh is not authenticated and git is falling back to HTTPS basic auth, which GitHub no longer accepts.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>5. Open the <span class='accent'>pull request</span></h2>
+<p>A pull request says <em>here is a change, have a look before it goes in</em>. It shows the exact lines that would change, gives your teammates somewhere to comment and approve, and leaves a permanent record of what was changed and why. That record is the reason it is still worth opening one when you are working alone. This command opens the GitHub form in your browser; fill in the title and body before you submit it.</p>
+<pre><code class="language-bash" data-trim>
+gh pr create --web
+</code></pre>
+<p class="small">Prefer the terminal? <code>gh pr create</code> with no flags prompts you for the same fields.</p>
+<aside class="notes">If the browser does not open, they are almost certainly in the container without a browser handoff. gh pr create with no flags works entirely in the terminal and is a completely fine substitute; so is opening the repo on github.com and using the Compare and pull request button that appears after a push.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Writing the <span class="accent">Pull Request</span></h2>
+<p>Title: short and specific. <em>Add About page</em>, not <em>Updates</em>.</p>
+<p>The body answers three questions for whoever reads it next, which may be a
+teammate, or you three months from now:</p>
+<div class="callout dense">
+<p><strong>What changed?</strong> The files, and what you did to them. “Added a GET /about route in server.js and created views/about.ejs.”</p><p><strong>Why?</strong> What it is for. “Gives visitors a page explaining what the application is.”</p><p><strong>How do I check it?</strong> What the reviewer should run. “Start the server and open localhost:3000/about.”</p>
+</div>
+<p class="small">Nothing checks this and it is still the point. A pull request
+with an empty body is the thing your teammates will not review.</p>
+<aside class="notes">Spend a real two minutes here. It is the only part of the lab that is not mechanical, the autograder cannot see it, and it is what the sprint rubrics grade later under README and PR Workflow.
+
+The framing that lands: the body is not paperwork, it is what makes the difference between a teammate approving in two minutes and leaving it for a day.
+
+If someone has written one line, ask them the third question out loud. Almost nobody includes how to verify, and it is the one a reviewer actually needs.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>How You <span class="accent">Submit</span></h2>
+<ol><li>Check the diff first: <code>gh pr view --web</code>, Files changed. <strong>Four files, no more.</strong></li><li>Merge it: <code>gh pr merge --merge --delete-branch</code></li><li>Upload <span class='accent'>github.json</span> to <strong>Gradescope</strong>, through the Lab 2 link in Canvas.</li></ol>
+<div class="callout"><strong>Pushing to GitHub is not submitting.</strong>
+The code on GitHub is the work. The upload to Gradescope is what records it.</div>
+<p class="small">Same <span class='accent'>github.json</span> as Lab 1, the URL has not changed. The merge command also deletes the branch, puts you back on main and pulls the merged commit, so <code>git log --oneline</code> should show your About page commit on main. The lab is due tonight at 11:59 PM.</p>
+<aside class="notes">Two separate things get lost on this slide, so do not advance past it quickly.
+
+1. THE DIFF CHECK. If Files changed shows anything beyond server.js, views/about.ejs, package.json and package-lock.json, they staged something they did not mean to, and node_modules is the usual culprit. Better to find it here than after the merge.
+
+2. THE GRADESCOPE UPLOAD. Same as last week and it will happen again: merging feels like finishing, because on GitHub it is. Nothing is recorded until github.json is uploaded.
+
+Ask people whether they SUBMITTED, not whether they finished. The Gradescope timestamp is the thing to see.
+
+A merge that refuses because the branch is out of date is not a problem today, nobody else is pushing to their repo; if it happens it usually means they committed to main separately at some point.</aside>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Container Still Not Working?</h2>
+<p><strong>Put your hand up now.</strong> That is what we are here for, and
+several of you are in the same position.</p>
+<p class="small">But if it is going to take a while, <strong>get the lab
+done first</strong>. You can install Node and Git directly on your machine,
+and both are written up in Canvas. Finish the lab, then we fix the container
+with whatever time is left.</p>
+<aside class="notes">This is the slide that matters most today.
+
+Roughly a quarter of the room could not get a route running on Tuesday because
+of the container, and the lab is due tonight. The order of operations is
+deliberate: unblock them for the lab first, fix the container second. A student
+who leaves with a working container and an unsubmitted lab has had a worse
+morning than one who leaves with the reverse.
+
+The two pages are "Installing Node.js Locally" and "Installing Git Locally",
+both in Canvas. Git is the one that matters for this lab.
+
+If you cannot sort someone's container out, do not sink the hour into it. Send
+them to message Tim through the Canvas Inbox and he will find a time to sit
+down with them.
+
+If more than a handful are stuck on the same thing, do it as a group at the
+front rather than one laptop at a time.</aside>
+</section>
+
+<section>
+<h2 style="margin-bottom:0.1em">Lab Exit Ticket</h2>
+<p class="tiny" style="max-width:34em;margin:0 auto 0.3em;opacity:0.85">
+In Canvas under Lab 02, 4 questions, two minutes. One
+each, including if you worked alone. The window closes shortly after your
+section ends and there is no makeup, though the lowest three of the term are
+dropped.</p>
+<div class="callout dense" style="margin:0.35em auto">
+<p><strong>1.</strong> Today's word.</p><p><strong>2.</strong> Who did you work with? Full name as it appears in Canvas, plus their UMass email.</p><p><strong>3.</strong> Which step took you the longest, and what was going on?</p><p><strong>4.</strong> Anything you are still unsure about. Optional, and read.</p>
+</div>
+<p class="accent" style="font-size:1.15em;margin:0.1em 0">Word: <span
+class="wordblank" contenteditable="true" spellcheck="false"
+data-placeholder="click to type"></span></p>
+<div class="timer-unit"><div class="timer-cap">Fill in the exit ticket</div><div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint"></span></div></div>
+<aside class="notes">THE WORD. Click the blank on this slide and type it in. It saves as you go and survives a reload.
+
+- PUT IT UP IN THE LAST FIFTEEN MINUTES, not at the start. The ticket window opens near the end of your section for exactly this reason.
+- USE A DIFFERENT WORD IN EACH SECTION. The typed word PERSISTS in this browser, so the second section will find the first section's word already sitting here. Clear it and type a new one.
+
+Everyone submits their own, including anyone who worked alone.
+
+BEFORE ANYONE LEAVES, run this out loud:
+- git log --oneline shows the About page commit ON MAIN
+- gh pr list --state merged shows their merged PR
+- github.json is uploaded to Gradescope
+- the exit ticket is submitted, with the word
+
+The first one is the real check. A student can have a perfect PR sitting open and unmerged and believe they are done, and that is the single most likely way to finish this lab at about half marks.
+
+Anyone not going to finish: the lab is due tonight, so they have the evening. Make sure they leave knowing which step they are on.</aside>
+</section>
+
+</div>
+</div>
+
+<script src="../../../../vendor/reveal/dist/reveal.js"></script>
+<script src="../../../../vendor/reveal/plugin/notes/notes.js"></script>
+<script src="../../../../vendor/reveal/plugin/highlight/highlight.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true, controls: true, progress: true, center: true, slideNumber: true,
+    plugins: [ RevealNotes, RevealHighlight ]
+  });
+
+  /* Timer wiring. Each .timer carries data-minutes. State lives on the element,
+     so several timers on different slides never interfere, and returning to a
+     slide leaves its timer exactly as it was left. */
+  document.querySelectorAll('.timer').forEach(function(el){
+    var total = Math.round(parseFloat(el.dataset.minutes) * 60);
+    var left = total, id = null, state = 'idle';
+    var clock = el.querySelector('.clock'), hint = el.querySelector('.hint');
+
+    function fmt(s){
+      return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+    }
+    function paint(){
+      clock.textContent = fmt(Math.max(left, 0));
+      el.classList.toggle('warn', left <= total*0.25 && left > 0);
+      el.classList.toggle('over', left <= 0);
+      el.classList.toggle('running', state === 'running');
+      hint.textContent = state === 'done'    ? 'time is up, dbl click resets'
+                       : state === 'running' ? 'click to pause'
+                       : state === 'paused'  ? 'paused, double click resets'
+                       : 'click to start';
+    }
+    /* Halt at 0:00 rather than counting up. An earlier version ran into
+       overtime so the overrun was visible, but on a projector a growing +2:14
+       reads as a timer that is still asking for more time, when the intent is
+       that the activity is over. Red and frozen says done. */
+    function tick(){
+      left--;
+      if (left <= 0){ left = 0; stop(); state = 'done'; }
+      paint();
+    }
+    function stop(){ if (id){ clearInterval(id); id = null; } }
+
+    /* Single click toggles run/pause. Double click resets.
+       Keep these two jobs separate: an earlier version overloaded one click to
+       also mean "reset", which made a finished timer impossible to reset at all,
+       because once it was paused no branch could reach the reset. */
+    el.addEventListener('click', function(){
+      if (state === 'done') return;   /* only a reset gets you out of done */
+      if (state === 'running'){ stop(); state = 'paused'; }
+      else { stop(); id = setInterval(tick, 1000); state = 'running'; }
+      paint();
+    });
+    el.addEventListener('dblclick', function(){
+      stop(); left = total; state = 'idle'; paint();
+    });
+    paint();
+  });
+
+  /* Editable word field. Keyed by the deck's own title, so each unit's word
+     persists independently in the same browser and reloading mid-class does
+     not lose what was typed. Enter blurs rather than inserting a newline,
+     since this is one line of text, not a note. */
+  document.querySelectorAll('.wordblank').forEach(function(el){
+    var key = 'lecture-word:' + document.title;
+    var saved = localStorage.getItem(key);
+    if (saved) el.textContent = saved;
+    el.addEventListener('input', function(){
+      localStorage.setItem(key, el.textContent);
+    });
+    el.addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){ e.preventDefault(); el.blur(); }
+    });
+  });
+
+  /* ===================== PHASE TIMER =====================
+     One clock across a run of consecutive slides, so the reading-check
+     discussion is timed as a whole rather than restarting on each question.
+
+     A section opts in with data-phase-timer="<minutes>". The slide that opens
+     the run also carries data-phase-timer-start, which is what makes it sit
+     large and centred there and small in the corner afterwards.
+
+     Deliberately ONE element reused, not one per slide. The countdown is then
+     continuous by construction: there is no state to hand between slides, and
+     no way for two copies to disagree about how much time is left. Moving it
+     is a class swap; the CSS transition does the travel and the resize. */
+  (function(){
+    var host = document.querySelector('.reveal');
+    if (!host) return;
+    var el = document.createElement('div');
+    el.id = 'phase-timer';
+    el.innerHTML = '<span class="clock"></span><span class="hint"></span>';
+    host.appendChild(el);
+
+    var clock = el.querySelector('.clock'), hint = el.querySelector('.hint');
+    var total = 0, left = 0, id = null, state = 'idle';
+
+    function fmt(s){
+      return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+    }
+    function paint(){
+      clock.textContent = fmt(Math.max(left, 0));
+      el.classList.toggle('warn', left <= total*0.25 && left > 0);
+      el.classList.toggle('over', left <= 0);
+      el.classList.toggle('running', state === 'running');
+      hint.textContent = state === 'done'    ? 'time is up, dbl click resets'
+                       : state === 'running' ? 'click to pause'
+                       : state === 'paused'  ? 'paused, dbl click resets'
+                       : 'click to start';
+    }
+    function stop(){ if (id){ clearInterval(id); id = null; } }
+    /* Halts at 0:00 in red, same as the inline .timer elements. */
+    function tick(){
+      left--;
+      if (left <= 0){ left = 0; stop(); state = 'done'; }
+      paint();
+    }
+
+    el.addEventListener('click', function(){
+      if (state === 'done') return;
+      if (state === 'running'){ stop(); state = 'paused'; }
+      else { stop(); id = setInterval(tick, 1000); state = 'running'; }
+      paint();
+    });
+    el.addEventListener('dblclick', function(){
+      stop(); state = 'idle'; left = total; paint();
+    });
+
+    function sync(){
+      var s = Reveal.getCurrentSlide();
+      var mins = s && s.dataset ? s.dataset.phaseTimer : null;
+      if (!mins){ el.classList.remove('on','hero','mini'); return; }
+
+      var t = Math.round(parseFloat(mins) * 60);
+      /* Only (re)arm on the slide that STARTS the phase, and only while it has
+         not been started yet. Without the state check, stepping back to the
+         first slide mid-discussion would silently wipe the running clock. */
+      if (s.hasAttribute('data-phase-timer-start') && state === 'idle'){
+        total = t; left = t;
+      } else if (!total){
+        total = t; left = t;
+      }
+      el.classList.add('on');
+      var hero = s.hasAttribute('data-phase-timer-start');
+      el.classList.toggle('hero', hero);
+      el.classList.toggle('mini', !hero);
+      paint();
+    }
+
+    Reveal.on('ready', sync);
+    Reveal.on('slidechanged', sync);
+  })();
+</script>
+</body>
+</html>
