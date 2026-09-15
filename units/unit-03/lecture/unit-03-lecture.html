@@ -377,7 +377,33 @@ title = &#x27;&lt;b&gt;Notes&lt;/b&gt;&#x27;
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>What the Reading Check Showed</h2>
-<ul><li>What res.render() can do that res.sendFile() cannot: send real server data into the page, not just a file</li><li>Which EJS tag runs real JavaScript, a loop or an if, without printing anything itself</li></ul>
+<ul><li><strong>Q1, render versus sendFile: 46 of 54.</strong> The six who missed it picked “sets Content-Type to text/html”, which sendFile does too</li><li><strong>Q2, which tag runs a loop: 42 of 54.</strong> Nine picked <code>&lt;%=</code>, which would print what the loop returns instead of running it</li><li><strong>The runaway theme in your own words:</strong> which tag is which, and when you would ever want the raw one</li><li><strong>Eleven of you</strong> asked to see render and a forEach loop done live. That is the activity</li><li><strong>And some of you caught a real bug in the Real World section.</strong> It is the page, not you</li></ul>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>How express.static Picks a File</h2>
+<p class="subtitle">Three of you asked how Express knows which file to send.</p><pre><code class="language-javascript" data-trim>
+app.use(express.static(&#x27;public&#x27;));
+
+GET /style.css   -&gt;  public/style.css
+GET /logo.png    -&gt;  public/logo.png
+GET /            -&gt;  public/index.html
+</code></pre><p class="small left">It maps the URL path straight onto a filename inside that folder. No file matches? Express moves on and your routes run.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>You Found a Real Bug</h2>
+<p class="subtitle">The Real World section shows a template and then never uses it.</p><pre><code class="language-javascript" data-trim>
+// it shows views/entries.ejs ... then ignores it
+const inner = &#x27;&lt;ul&gt;&#x27; + entries.map(
+  e =&gt; `&lt;li&gt;${e.title}&lt;/li&gt;`).join(&#x27;&#x27;) + &#x27;&lt;/ul&gt;&#x27;;
+res.render(&#x27;layout&#x27;, { title, body: inner, entries });
+</code></pre><p class="small left">Two things wrong: the template is dead, and <code>${e.title}</code> is unescaped, the exact hazard we just covered. <code>entries</code> is passed and never used.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>Layout, Partial, or Page?</h2>
+<p class="subtitle">Several of you lost track of which .ejs file does what.</p><div class="left"><p><strong class="accent">Page</strong> is what the route names: <code>res.render('entries')</code> finds <code>views/entries.ejs</code>.</p><p><strong class="accent">Partial</strong> is a fragment pulled into another file with <code>include</code>. The header is one.</p><p><strong class="accent">Layout</strong> is just a page that happens to wrap the others. EJS has no built-in layout; it is a convention, not a feature.</p></div>
 </section>
 
 <section>
