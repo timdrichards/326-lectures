@@ -297,17 +297,81 @@
 
 <section class="light" data-background-color="#F4F6FB">
 <h2>Today's 75 Minutes</h2>
-<div class="phase-grid"><div class="phase-card"><div class="num">1</div><div class="time">~30 min</div><div class="label">Reading check<br>and clarify</div></div><div class="phase-card"><div class="num">2</div><div class="time">~30 min</div><div class="label">Build it<br>in 2s and 3s</div></div><div class="phase-card"><div class="num">3</div><div class="time">~10 min</div><div class="label">Discussion,<br>on what you just built</div></div><div class="phase-card"><div class="num">4</div><div class="time">~5 min</div><div class="label">Exit ticket<br>and wrap</div></div></div>
+<div class="phase-grid"><div class="phase-card"><div class="num">1</div><div class="time">~30 min</div><div class="label">Settle in, recap,<br>reading check</div></div><div class="phase-card"><div class="num">2</div><div class="time">~30 min</div><div class="label">Build it<br>in 2s and 3s</div></div><div class="phase-card"><div class="num">3</div><div class="time">~10 min</div><div class="label">Discussion,<br>on what you just built</div></div><div class="phase-card"><div class="num">4</div><div class="time">~5 min</div><div class="label">Exit ticket<br>and wrap</div></div></div>
 <div class="callout" style="max-width:30em"><strong>Today only:</strong> we spend the first half hour on what the reading check surfaced, so Build It and Swap Roles run 15 minutes each and Discussion runs 10.</div>
 <p class="muted small" style="margin-top:1em">Same shape every lecture.</p>
 </section>
 
-<section class="light" data-background-color="#F4F6FB">
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30" data-phase-timer-start>
+<h2>From Programs to People</h2>
+<p class="subtitle">Units 01 and 02 served programs. This one serves a person with a browser.</p><div class="left"><p><strong class="accent">Text and JSON are for machines.</strong></p><p><strong class="accent">HTML carries meaning, not just looks.</strong></p><p><strong class="accent">A file is the same for everyone. Data is not.</strong></p></div><pre><code class="language-javascript" data-trim>
+res.send(&#x27;...&#x27;)      // a string
+res.sendFile(path)   // a file, same for everyone
+res.render(view, data)   // a file plus data
+</code></pre>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>What Unit 03 Covered</h2>
 <div class="left recap"><p><strong class="accent">From text to HTML</strong></p><p><strong class="accent">Static files</strong></p><p><strong class="accent">Semantic HTML</strong></p><p><strong class="accent">Why templates?</strong></p><p><strong class="accent">Setting up EJS</strong></p><p><strong class="accent">Template syntax</strong></p><p><strong class="accent">Partials</strong></p></div>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30" data-phase-timer-start>
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>From text to HTML</h2>
+<p class="subtitle">A real file off disk, not a string that happens to arrive as text/html.</p><pre><code class="language-javascript" data-trim>
+app.get(&#x27;/&#x27;, (req, res) =&gt; {
+  const dir = join(import.meta.dirname, &#x27;public&#x27;);
+  res.sendFile(join(dir, &#x27;index.html&#x27;));
+});
+</code></pre>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>Static files</h2>
+<p class="subtitle">One line serves a whole directory, so you stop writing a route per file.</p><pre><code class="language-javascript" data-trim>
+app.use(express.static(&#x27;public&#x27;));
+</code></pre><p class="small">public/style.css is served at /style.css. public/index.html answers both /index.html and /.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>Semantic HTML</h2>
+<p class="subtitle">Tags carry meaning. Use the one that says what the thing is.</p><pre><code class="language-html" data-trim>
+&lt;header&gt; &lt;nav&gt; &lt;main&gt; &lt;article&gt; &lt;footer&gt;
+</code></pre><p class="small">These change nothing about how the page looks by default. That is the point: the meaning is for the browser, assistive technology and search, not for the eye.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>Why templates?</h2>
+<p class="subtitle">sendFile sends a fixed file. Every visitor gets the same page.</p><div class="left"><p>That is exactly right for a stylesheet or a logo, and exactly wrong for a list of entries that changes every time someone adds one.</p><p><strong class="accent">A template is HTML with placeholders.</strong> The file on disk never changes. The output changes with every request.</p></div>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>Setting up EJS</h2>
+<p class="subtitle">Two lines of configuration, then render by name.</p><pre><code class="language-javascript" data-trim>
+app.set(&#x27;view engine&#x27;, &#x27;ejs&#x27;);
+app.set(&#x27;views&#x27;, &#x27;views&#x27;);
+
+res.render(&#x27;entries&#x27;, { title, entries });
+</code></pre>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>Template syntax</h2>
+<p class="subtitle">Three tags. The difference between them is the whole lesson.</p><pre><code class="language-html" data-trim>
+&lt;%= value %&gt;   prints it, HTML-escaped
+&lt;% code %&gt;     runs it, prints nothing
+&lt;%- value %&gt;   prints it raw, no escaping
+</code></pre>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>Partials</h2>
+<p class="subtitle">A fragment you include, so the nav lives in one file instead of five.</p><pre><code class="language-html" data-trim>
+&lt;%- include(&#x27;partials/header&#x27;) %&gt;
+</code></pre><p class="small">Raw output, deliberately. The partial is markup you wrote, not input from a user.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>What the Reading Check Showed</h2>
 <ul><li>What res.render() can do that res.sendFile() cannot: send real server data into the page, not just a file</li><li>Which EJS tag runs real JavaScript, a loop or an if, without printing anything itself</li></ul>
 </section>
