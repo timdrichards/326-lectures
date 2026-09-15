@@ -131,6 +131,15 @@
     line-height:1.45; font-family:var(--headFont); text-align:left;
     white-space:pre; overflow-x:auto; }
 
+  /* Ligatures OFF on anything a student types. Added 2026-09-14 while checking
+     the Lab 02 deck, where `gh pr view --web` projected as `gh pr view –web`:
+     the text is correct and only the glyph is joined, which is exactly what
+     makes it dangerous. A student reading a command off the screen and typing
+     one dash gets an error that looks nothing like the cause. Harmless on a
+     deck nobody types from, so it is set globally rather than per deck. */
+  .reveal pre code, .reveal code, .reveal .terminal-card{
+    font-variant-ligatures:none; font-feature-settings:"liga" 0,"calt" 0; }
+
   .options{ display:grid; grid-template-columns:1fr 1fr; gap:0.6em; max-width:24em; margin:0 auto; }
   .opt{ background:var(--card); border-radius:0.35em; padding:0.55em 0.7em; text-align:left;
     color:var(--textDark); font-size:0.8em; }
