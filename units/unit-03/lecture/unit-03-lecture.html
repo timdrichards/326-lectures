@@ -361,6 +361,10 @@ res.render(&#x27;entries&#x27;, { title, entries });
 &lt;%= value %&gt;   prints it, HTML-escaped
 &lt;% code %&gt;     runs it, prints nothing
 &lt;%- value %&gt;   prints it raw, no escaping
+</code></pre><p class="small left"><strong class="accent">Escaped</strong> shows the tags as text. <strong class="accent">Raw</strong> leaves them as markup for the browser to run.</p><pre><code class="language-html" data-trim>
+title = &#x27;&lt;b&gt;Notes&lt;/b&gt;&#x27;
+&lt;%= title %&gt;   page shows   &lt;b&gt;Notes&lt;/b&gt;
+&lt;%- title %&gt;   page shows   Notes, in bold
 </code></pre>
 </section>
 
