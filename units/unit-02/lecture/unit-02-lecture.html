@@ -293,32 +293,32 @@
 <div class="reveal">
 <div class="slides">
 
-<section>
+<section data-phase-timer="30" data-phase-timer-start>
 <div class="bars"><div></div><div></div><div></div></div>
 <h1>UNIT 02: <span class="accent">Routes and Responses</span></h1>
 <p class="subtitle">One route was enough to prove the loop. A real app needs it to bend.</p>
 </section>
 
-<section class="light" data-background-color="#F4F6FB">
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <!-- *** THIS IS THE ONLY SLIDE WITH SCHEDULE INFORMATION ON IT ***
      Patch here when the calendar shifts. Weekdays only, never dates. -->
 <h2>On Deck</h2>
 <div class="options"><div class="opt"><strong>Tonight</strong><br><span class="small">Team Formation Survey closes, 11:59 PM</span></div><div class="opt"><strong>Friday</strong><br><span class="small">Lab 01, first commit and push</span></div><div class="opt"><strong>Tuesday</strong><br><span class="small">Sprint 0 due, team formation</span></div><div class="opt"><strong>Read</strong><br><span class="small">Unit 03 before Tuesday</span></div></div>
 </section>
 
-<section class="light" data-background-color="#F4F6FB">
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>Today's 75 Minutes</h2>
 <div class="phase-grid"><div class="phase-card"><div class="num">1</div><div class="time">~30 min</div><div class="label">Settle in, recap,<br>reading check</div></div><div class="phase-card"><div class="num">2</div><div class="time">~30 min</div><div class="label">Build it<br>in 2s and 3s</div></div><div class="phase-card"><div class="num">3</div><div class="time">~10 min</div><div class="label">Discussion,<br>on what you just built</div></div><div class="phase-card"><div class="num">4</div><div class="time">~5 min</div><div class="label">Exit ticket<br>and wrap</div></div></div>
 
 <p class="muted small" style="margin-top:1em">Same shape every lecture.</p>
 </section>
 
-<section class="light" data-background-color="#F4F6FB">
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>What Unit 02 Covered</h2>
 <div class="left recap"><p><strong class="accent">Route anatomy</strong><br><span class="small">app.METHOD(path, handler), and the handler can be named</span></p><p><strong class="accent">URL parameters with req.params</strong><br><span class="small">:name in the path, required, the route does not match without it</span></p><p><strong class="accent">Query strings with req.query</strong><br><span class="small">?term=&amp;limit= after the ?, optional, so give it a fallback</span></p><p><strong class="accent">Responding with more than text</strong><br><span class="small">res.send() for text, res.json() for data, res.status() to fail on purpose</span></p><p><strong class="accent">Reading error messages</strong><br><span class="small">break it deliberately and read what comes back</span></p><p><strong class="accent">Real World: express.Router()</strong><br><span class="small">group routes into a file and mount them at a prefix</span></p></div>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30" data-phase-timer-start>
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>What the Reading Check Showed</h2>
 <ul><li><strong>56 of you submitted.</strong> On the two multiple choice: <strong>42 of 56</strong> got the first, <strong>44 of 56</strong> the second</li><li>The 14 who missed the first all picked the same answer: that Express matches <span class='accent'>/hello/:name</span> either way. It does not</li><li><strong>The free text is where the real signal is.</strong> Two things, almost tied: <span class='accent'>req.query</span> versus <span class='accent'>req.params</span> (about 15 of you), and <span class='accent'>express.Router()</span> with the routes/ split (about 12)</li><li>Then <span class='accent'>res.status()</span>, and a few asking what <span class='accent'>curl</span> actually is</li></ul>
 </section>
