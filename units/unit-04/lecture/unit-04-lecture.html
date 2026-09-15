@@ -256,6 +256,17 @@
   }
   #phase-timer.mini .clock{ font-size:1.15em; }
   #phase-timer.mini .hint{ font-size:0.5em; }
+  /* On a dark slide the base colours above are dark on dark and the clock
+     disappears entirely. Found 2026-09-15 when the Phase 1 clock was extended
+     back onto the title slide, which is the first dark slide it has ever
+     appeared on. Applied by sync() from the slide's own class, because
+     #phase-timer is position:fixed and lives outside the section, so no
+     descendant selector can reach it. warn and over already carry their own
+     colours and are legible on both, so they are left alone. */
+  #phase-timer.on-dark{
+    background:rgba(244,246,251,0.10); border-color:rgba(244,246,251,0.35);
+    color:var(--textLight,#F4F6FB);
+  }
   #phase-timer.running{ border-color:var(--accent); }
   #phase-timer.warn{ background:rgba(224,175,104,0.22); border-color:var(--amber); color:var(--amber); }
   #phase-timer.over{ background:rgba(247,118,142,0.24); border-color:var(--red); color:var(--red); }
@@ -282,27 +293,27 @@
 <div class="reveal">
 <div class="slides">
 
-<section>
+<section data-phase-timer="30" data-phase-timer-start>
 <div class="bars"><div></div><div></div><div></div></div>
 <h1>UNIT 04: <span class="accent">Designing with CSS</span></h1>
 <p class="subtitle">The same three routes, now laid out instead of just listed</p>
 </section>
 
-<section class="light" data-background-color="#F4F6FB">
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <!-- *** THIS IS THE ONLY SLIDE WITH SCHEDULE INFORMATION ON IT ***
      Patch here when the calendar shifts. Weekdays only, never dates. -->
 <h2>On Deck</h2>
 <div class="options"><div class="opt"><strong>Friday</strong><br><span class="small">Lab 02 due, branching and the pull request</span></div><div class="opt"><strong>Friday</strong><br><span class="small">Homework 1 assigned, due in two weeks</span></div><div class="opt"><strong>Tuesday</strong><br><span class="small">Unit 05 picks up from here</span></div><div class="opt"><strong>Opens</strong><br><span class="small">Week 03 module, Friday 9:00 AM</span></div></div>
 </section>
 
-<section class="light" data-background-color="#F4F6FB">
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>Today's 75 Minutes</h2>
 <div class="phase-grid"><div class="phase-card"><div class="num">1</div><div class="time">~30 min</div><div class="label">Settle in, recap,<br>reading check</div></div><div class="phase-card"><div class="num">2</div><div class="time">~30 min</div><div class="label">Build it<br>in 2s and 3s</div></div><div class="phase-card"><div class="num">3</div><div class="time">~10 min</div><div class="label">Discussion,<br>on what you just built</div></div><div class="phase-card"><div class="num">4</div><div class="time">~5 min</div><div class="label">Exit ticket<br>and wrap</div></div></div>
 
 <p class="muted small" style="margin-top:1em">Same shape every lecture.</p>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30" data-phase-timer-start>
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>Structure Is Not Presentation</h2>
 <p class="subtitle">Unit 03 gave the browser meaning. It still looks like a plain document.</p><div class="left"><p><strong class="accent">HTML says what a thing is. CSS says how it looks and where it sits.</strong></p><p><strong class="accent">One stylesheet, and the templates do not change at all.</strong></p><p><strong class="accent">That separation is the point, not a side effect.</strong></p></div><pre><code class="language-javascript" data-trim>
 &lt;h1&gt;My Notes&lt;/h1&gt;        &lt;!-- what it is --&gt;
@@ -600,6 +611,8 @@ data-placeholder="click to type"></span></p>
         total = t; left = t;
       }
       el.classList.add('on');
+      /* Light slides carry class "light"; anything else is a dark section. */
+      el.classList.toggle('on-dark', !s.classList.contains('light'));
       var hero = s.hasAttribute('data-phase-timer-start');
       el.classList.toggle('hero', hero);
       el.classList.toggle('mini', !hero);

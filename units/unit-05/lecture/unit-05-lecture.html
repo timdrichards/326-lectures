@@ -256,6 +256,17 @@
   }
   #phase-timer.mini .clock{ font-size:1.15em; }
   #phase-timer.mini .hint{ font-size:0.5em; }
+  /* On a dark slide the base colours above are dark on dark and the clock
+     disappears entirely. Found 2026-09-15 when the Phase 1 clock was extended
+     back onto the title slide, which is the first dark slide it has ever
+     appeared on. Applied by sync() from the slide's own class, because
+     #phase-timer is position:fixed and lives outside the section, so no
+     descendant selector can reach it. warn and over already carry their own
+     colours and are legible on both, so they are left alone. */
+  #phase-timer.on-dark{
+    background:rgba(244,246,251,0.10); border-color:rgba(244,246,251,0.35);
+    color:var(--textLight,#F4F6FB);
+  }
   #phase-timer.running{ border-color:var(--accent); }
   #phase-timer.warn{ background:rgba(224,175,104,0.22); border-color:var(--amber); color:var(--amber); }
   #phase-timer.over{ background:rgba(247,118,142,0.24); border-color:var(--red); color:var(--red); }
@@ -550,6 +561,8 @@ data-placeholder="click to type"></span></p>
         total = t; left = t;
       }
       el.classList.add('on');
+      /* Light slides carry class "light"; anything else is a dark section. */
+      el.classList.toggle('on-dark', !s.classList.contains('light'));
       var hero = s.hasAttribute('data-phase-timer-start');
       el.classList.toggle('hero', hero);
       el.classList.toggle('mini', !hero);
