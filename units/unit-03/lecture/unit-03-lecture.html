@@ -357,11 +357,11 @@ res.render(&#x27;entries&#x27;, { title, entries });
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>Template syntax</h2>
-<p class="subtitle">Three tags. The difference between them is the whole lesson.</p><pre><code class="language-html" data-trim>
+<pre><code class="language-html" data-trim>
 &lt;%= value %&gt;   prints it, HTML-escaped
 &lt;% code %&gt;     runs it, prints nothing
 &lt;%- value %&gt;   prints it raw, no escaping
-</code></pre><p class="small left"><strong class="accent">Escaped</strong> shows the tags as text. <strong class="accent">Raw</strong> leaves them as markup for the browser to run.</p><pre><code class="language-html" data-trim>
+</code></pre><p class="small left"><strong class="accent">Escaped</strong> shows the tags as text. <strong class="accent">Raw</strong> lets the browser run them. The browser cannot tell your markup from a visitor's, so escaping is what keeps their words as words instead of part of your page.</p><pre><code class="language-html" data-trim>
 title = &#x27;&lt;b&gt;Notes&lt;/b&gt;&#x27;
 &lt;%= title %&gt;   page shows   &lt;b&gt;Notes&lt;/b&gt;
 &lt;%- title %&gt;   page shows   Notes, in bold
