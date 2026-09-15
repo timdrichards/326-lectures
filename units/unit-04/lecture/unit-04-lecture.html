@@ -302,12 +302,54 @@
 <p class="muted small" style="margin-top:1em">Same shape every lecture.</p>
 </section>
 
-<section class="light" data-background-color="#F4F6FB">
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30" data-phase-timer-start>
+<h2>Structure Is Not Presentation</h2>
+<p class="subtitle">Unit 03 gave the browser meaning. It still looks like a plain document.</p><div class="left"><p><strong class="accent">HTML says what a thing is. CSS says how it looks and where it sits.</strong></p><p><strong class="accent">One stylesheet, and the templates do not change at all.</strong></p><p><strong class="accent">That separation is the point, not a side effect.</strong></p></div><pre><code class="language-javascript" data-trim>
+&lt;h1&gt;My Notes&lt;/h1&gt;        &lt;!-- what it is --&gt;
+h1 { font-size: 2rem; }  /* how it looks */
+</code></pre>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>What Unit 04 Covered</h2>
 <div class="left recap"><p><strong class="accent">Selectors and the cascade</strong></p><p><strong class="accent">The box model</strong></p><p><strong class="accent">Layout with flexbox</strong></p><p><strong class="accent">Naming the pattern: separation of concerns</strong></p></div>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30" data-phase-timer-start>
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>Selectors and the cascade</h2>
+<p class="subtitle">Three ways to say which elements you mean.</p><pre><code class="language-css" data-trim>
+body { }        /* type: every &lt;body&gt; */
+nav a { }       /* descendant: &lt;a&gt; inside &lt;nav&gt; */
+.site-header { }  /* class: anything with that class */
+</code></pre><p class="small left">When two rules fight, specificity decides: id beats class beats type.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>The box model</h2>
+<p class="subtitle">Every element is four nested boxes.</p><pre><code class="language-css" data-trim>
+content  -&gt;  padding  -&gt;  border  -&gt;  margin
+
+* { box-sizing: border-box; }
+</code></pre><p class="small left">Padding is inside the border, margin is outside it. By default a 300px box with 20px padding occupies 340px.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>Layout with flexbox</h2>
+<p class="subtitle">The box model controls one element. Flexbox controls how siblings share space.</p><pre><code class="language-css" data-trim>
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+</code></pre>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>Naming the pattern: separation of concerns</h2>
+<p class="subtitle">Nothing in entries.ejs changed to make any of this happen.</p><div class="left"><p>The template still outputs the same <code>&lt;ul&gt;</code> and <code>&lt;li&gt;</code> it did in Unit 03. Only <code>public/style.css</code> changed.</p><p><strong class="accent">HTML describes what the content is. CSS describes how it looks. The two change independently.</strong></p></div>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>What the Reading Check Showed</h2>
 <ul><li>Why flex-wrap is the one property that turns a single overflowing row into cards that continue on a new line</li><li>The one place a correct link tag and a real stylesheet still produce zero visible styling</li></ul>
 </section>
