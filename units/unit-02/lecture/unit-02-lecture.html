@@ -297,7 +297,7 @@
 
 <section class="light" data-background-color="#F4F6FB">
 <h2>Today's 75 Minutes</h2>
-<div class="phase-grid"><div class="phase-card"><div class="num">1</div><div class="time">~10 min</div><div class="label">Settle in, recap,<br>reading check</div></div><div class="phase-card"><div class="num">2</div><div class="time">~40 min</div><div class="label">Build it<br>in 2s and 3s</div></div><div class="phase-card"><div class="num">3</div><div class="time">~20 min</div><div class="label">Discussion,<br>on what you just built</div></div><div class="phase-card"><div class="num">4</div><div class="time">~5 min</div><div class="label">Exit ticket<br>and wrap</div></div></div>
+<div class="phase-grid"><div class="phase-card"><div class="num">1</div><div class="time">~30 min</div><div class="label">Settle in, recap,<br>reading check</div></div><div class="phase-card"><div class="num">2</div><div class="time">~30 min</div><div class="label">Build it<br>in 2s and 3s</div></div><div class="phase-card"><div class="num">3</div><div class="time">~10 min</div><div class="label">Discussion,<br>on what you just built</div></div><div class="phase-card"><div class="num">4</div><div class="time">~5 min</div><div class="label">Exit ticket<br>and wrap</div></div></div>
 
 <p class="muted small" style="margin-top:1em">Same shape every lecture.</p>
 </section>
@@ -307,12 +307,12 @@
 <div class="left recap"><p><strong class="accent">Route anatomy</strong><br><span class="small">app.METHOD(path, handler), and the handler can be named</span></p><p><strong class="accent">URL parameters with req.params</strong><br><span class="small">:name in the path, required, the route does not match without it</span></p><p><strong class="accent">Query strings with req.query</strong><br><span class="small">?term=&amp;limit= after the ?, optional, so give it a fallback</span></p><p><strong class="accent">Responding with more than text</strong><br><span class="small">res.send() for text, res.json() for data, res.status() to fail on purpose</span></p><p><strong class="accent">Reading error messages</strong><br><span class="small">break it deliberately and read what comes back</span></p><p><strong class="accent">Real World: express.Router()</strong><br><span class="small">group routes into a file and mount them at a prefix</span></p></div>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="10" data-phase-timer-start>
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30" data-phase-timer-start>
 <h2>What the Reading Check Showed</h2>
 <ul><li><strong>56 of you submitted.</strong> On the two multiple choice: <strong>42 of 56</strong> got the first, <strong>44 of 56</strong> the second</li><li>The 14 who missed the first all picked the same answer: that Express matches <span class='accent'>/hello/:name</span> either way. It does not</li><li><strong>The free text is where the real signal is.</strong> Two things, almost tied: <span class='accent'>req.query</span> versus <span class='accent'>req.params</span> (about 15 of you), and <span class='accent'>express.Router()</span> with the routes/ split (about 12)</li><li>Then <span class='accent'>res.status()</span>, and a few asking what <span class='accent'>curl</span> actually is</li></ul>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="10">
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>Why split routes into <span class="accent">files</span> at all?</h2>
 <p class="subtitle">"I get that it helps organize routes, but I'm still confused why we need to split them into separate files instead of keeping them all in server.js."</p><pre><code class="language-javascript" data-trim>
 app.use(&#x27;/&#x27;, pagesRouter);
@@ -320,7 +320,7 @@ app.use(&#x27;/api&#x27;, apiRouter);
 </code></pre>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="10">
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>The <span class="accent">prefix</span> is the point</h2>
 <pre><code class="language-javascript" data-trim>
 // routes/api.js
@@ -332,7 +332,7 @@ app.use(&#x27;/api&#x27;, apiRouter)
 </code></pre><p class="small">One of you hit exactly this: <code>/api/status</code> worked and <code>/status</code> said no path found. The router file never knows its own prefix.</p>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="10">
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2><span class="accent">params</span> or <span class="accent">query</span>?</h2>
 <div class="left"><p><strong>Path parameter.</strong> Part of the address. No route without it. <code>/hello/:name</code></p><p><strong>Query parameter.</strong> Optional extra. The route matches with or without it. <code>/count?from=1</code></p></div><pre><code class="language-javascript" data-trim>
 req.query.from || 1   // always needs a fallback
@@ -340,7 +340,7 @@ req.params.name       // guaranteed to exist
 </code></pre>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="10">
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>And what <span class="accent">is</span> curl?</h2>
 <p class="subtitle">A web browser with no window. You give it a URL, it makes the request, it prints what came back.</p><pre><code class="language-bash" data-trim>
 curl -i http://localhost:3000/hello/Alice
@@ -352,7 +352,7 @@ Hello, Alice!
 </code></pre><p class="small">Already installed, in the container and on your machine. Full page in Canvas: <strong>&#129513; curl</strong>.</p>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="10">
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2><span class="accent">res.status()</span> does not stop your function</h2>
 <p class="subtitle">"It looks like it should end the request like a return statement in a normal function, but it doesn't."</p><pre><code class="language-javascript" data-trim>
 if (!thing) {
@@ -363,7 +363,7 @@ res.json(thing);
 </code></pre>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="10">
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>Without the <span class="accent">return</span></h2>
 <pre><code class="language-javascript" data-trim>
 if (!thing) {
@@ -376,7 +376,7 @@ headers after they are sent to the client
 </code></pre>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="10">
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>When two routes <span class="accent">overlap</span></h2>
 <p class="subtitle">"What route gets chosen if there is an overlap, is it always the first one?"</p><pre><code class="language-javascript" data-trim>
 app.get(&#x27;/repeat/hello&#x27;, ...)   // checked first
@@ -384,7 +384,7 @@ app.get(&#x27;/repeat/:word&#x27;, ...)   // catches everything else
 </code></pre><p class="small">Yes. First match wins, in registration order. Same rule as Tuesday.</p>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="10">
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>Where does <span class="accent">req.params.name</span> get its name?</h2>
 <p class="subtitle">"Would it depend on the app.get line? If it read <code>/hello/:nname</code>, would the parameters now match?"</p><pre><code class="language-javascript" data-trim>
 // the route declaration names the key
@@ -429,7 +429,7 @@ const to = req.query.to || 10;
 <p class="small">The full brief and starter code are in Canvas, under this unit.
 Nothing is submitted.</p>
 
-<div class="timer-unit"><div class="timer-cap">Build it, with your group</div><div class="timer" data-minutes="20"><span class="clock">20:00</span><span class="hint"></span></div></div>
+<div class="timer-unit"><div class="timer-cap">Build it, with your group</div><div class="timer" data-minutes="15"><span class="clock">15:00</span><span class="hint"></span></div></div>
 </section>
 
 <section>
@@ -438,7 +438,7 @@ Nothing is submitted.</p>
 <p class="small">This slide is the signal. If you swapped earlier on your own,
 swap back now so everyone is on the same clock.</p>
 
-<div class="timer-unit"><div class="timer-cap">Keep building, second half</div><div class="timer" data-minutes="20"><span class="clock">20:00</span><span class="hint"></span></div></div>
+<div class="timer-unit"><div class="timer-cap">Keep building, second half</div><div class="timer" data-minutes="15"><span class="clock">15:00</span><span class="hint"></span></div></div>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
@@ -454,8 +454,8 @@ timer.</p>
 <ul><li>You just decided what a missing <span class='accent'>?tag</span> should do, and what a tag that matches nothing should do. Did the group next to you make the same call? What made you choose differently?</li><li>Where did the silently-default versus reject-with-400 argument run out of evidence?</li><li>Every route you wrote today answers with text or JSON. What is the first thing you would want to send back that neither of those really covers?</li></ul>
 
 <div class="timer-row">
-<div class="timer-unit"><div class="timer-cap">Compare with the groups next to you</div><div class="timer" data-minutes="10"><span class="clock">10:00</span><span class="hint"></span></div></div>
-<div class="timer-unit"><div class="timer-cap">Open discussion, whole room</div><div class="timer" data-minutes="10"><span class="clock">10:00</span><span class="hint"></span></div></div>
+<div class="timer-unit"><div class="timer-cap">Compare with the groups next to you</div><div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint"></span></div></div>
+<div class="timer-unit"><div class="timer-cap">Open discussion, whole room</div><div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint"></span></div></div>
 </div>
 </section>
 
