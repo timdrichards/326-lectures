@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Unit 05: JSON, Data's Native Language -- COMPSCI 326</title>
+<title>Unit 06: HTTP, the Protocol Underneath -- COMPSCI 326</title>
 
 <!--
   Live, in-person lecture deck. Distinct from course/units/unit-NN/slides/,
@@ -295,15 +295,15 @@
 
 <section data-phase-timer="30" data-phase-timer-start>
 <div class="bars"><div></div><div></div><div></div></div>
-<h1>UNIT 05: <span class="accent">JSON, Data's Native Language</span></h1>
-<p class="subtitle">Every route so far has read data. Today's first one creates it.</p>
+<h1>UNIT 06: <span class="accent">HTTP, the Protocol Underneath</span></h1>
+<p class="subtitle">Express has been writing HTTP for you. Today you read it.</p>
 </section>
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <!-- *** THIS IS THE ONLY SLIDE WITH SCHEDULE INFORMATION ON IT ***
      Patch here when the calendar shifts. Weekdays only, never dates. -->
 <h2>On Deck</h2>
-<div class="options"><div class="opt"><strong>Tonight</strong><br><span class="small">Sprint 1 and the Share Your Project post, 11:59 PM</span></div><div class="opt"><strong>Thursday</strong><br><span class="small">Unit 06, read it before class</span></div><div class="opt"><strong>Friday</strong><br><span class="small">Lab 03, pulling and merging</span></div><div class="opt"><strong>Friday</strong><br><span class="small">Quiz 1 opens, due Monday</span></div></div>
+<div class="options"><div class="opt"><strong>Friday</strong><br><span class="small">Lab 03, pulling and merging</span></div><div class="opt"><strong>Friday</strong><br><span class="small">Quiz 1 opens, due Monday</span></div><div class="opt"><strong>Friday</strong><br><span class="small">Week 04 module opens, 9:00 AM</span></div><div class="opt"><strong>Next Thursday</strong><br><span class="small">Homework 1 due</span></div></div>
 </section>
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
@@ -314,146 +314,121 @@
 </section>
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>Programs Need Data, Not Pages</h2>
-<p class="subtitle">Everything so far was built for a person to read. Most requests are programs talking to programs.</p><div class="left"><p><strong class="accent">A program cannot usefully read a web page.</strong></p><p><strong class="accent">JSON is text both sides can take apart the same way.</strong></p><p><strong class="accent">Today the server gets a second audience: code.</strong></p></div><pre><code class="language-text" data-trim>
-GET  /entries  -&gt;  HTML, for a browser
-POST /entries  -&gt;  JSON, for a program
+<h2>Express Was Hiding HTTP</h2>
+<p class="subtitle">Unit 05 wrote res.status(201) without asking what a status is.</p><div class="left"><p><strong class="accent">HTTP is plain text with a fixed shape.</strong></p><p><strong class="accent">The status code is how a program knows what happened.</strong></p><p><strong class="accent">Browser, curl, phone app: none of them know it is Express.</strong></p></div><pre><code class="language-text" data-trim>
+&gt; GET /entries HTTP/1.1
+&lt; HTTP/1.1 200 OK
+&lt; X-Total-Count: 3
 </code></pre>
 </section>
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>What Unit 05 Covered</h2>
-<div class="left recap"><p><strong class="accent">The starting problem</strong></p><p><strong class="accent">What JSON looks like</strong></p><p><strong class="accent">From objects to text</strong></p><p><strong class="accent">Parsing JSON back</strong></p><p><strong class="accent">What a round trip changes</strong></p><p><strong class="accent">Accepting JSON in a request</strong></p><p><strong class="accent">Sharing the entries array</strong></p><p><strong class="accent">A real POST route</strong></p><p><strong class="accent">Trying it with curl</strong></p><p><strong class="accent">Naming the pattern</strong></p></div>
+<h2>What Unit 06 Covered</h2>
+<div class="left recap"><p><strong class="accent">The starting problem</strong></p><p><strong class="accent">Watching the wire</strong></p><p><strong class="accent">The parts of a message</strong></p><p><strong class="accent">Methods</strong></p><p><strong class="accent">Status codes as a vocabulary</strong></p><p><strong class="accent">Headers carry metadata</strong></p><p><strong class="accent">Seeing it in the browser</strong></p><p><strong class="accent">Naming the pattern</strong></p></div>
 </section>
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>The starting problem</h2>
-<p class="subtitle">The entries lived inside one route handler.</p><pre><code class="language-javascript" data-trim>
-app.get(&#x27;/entries&#x27;, (req, res) =&gt; {
-  const entries = [ /* three notes */ ];
-  res.render(&#x27;entries&#x27;, { title: &#x27;My Notes&#x27;, entries });
-});
-</code></pre><p class="small left">Adding one meant editing the file and restarting. Only a browser could use the result.</p>
+<p class="subtitle">"It did not work" is not enough to go on.</p><div class="left"><p>400, 404 and 500 already say most of what went wrong, and where to look.</p><p>Until now everything went through req.params, req.body and res.json(), which hide the actual request and response.</p></div>
 </section>
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>What JSON looks like</h2>
-<p class="subtitle">Six value types, and nothing else.</p><pre><code class="language-json" data-trim>
-{
-  &quot;title&quot;: &quot;First note&quot;,
-  &quot;pinned&quot;: false,
-  &quot;words&quot;: 5,
-  &quot;tags&quot;: [&quot;css&quot;, &quot;lecture&quot;],
-  &quot;author&quot;: null
-}
-</code></pre><p class="small left">Stricter than JavaScript: double quotes on keys and strings, no trailing comma, no comments.</p>
+<h2>Watching the wire</h2>
+<p class="subtitle">curl -v prints the conversation.</p><pre><code class="language-bash" data-trim>
+curl -v http://localhost:3000/entries \
+  -o /dev/null
+</code></pre><div class="left small"><p><code>*</code> curl's own notes &nbsp; <code>&gt;</code> the request &nbsp; <code>&lt;</code> the response &nbsp; <code>{</code> the body arriving</p></div>
 </section>
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>From objects to text</h2>
-<p class="subtitle">An object only exists inside one program. Text can travel.</p><pre><code class="language-javascript" data-trim>
-JSON.stringify({ title: &#x27;Note&#x27; })
-// &#x27;{&quot;title&quot;:&quot;Note&quot;}&#x27;
-</code></pre><p class="small left">res.json() does this for you, and also sets Content-Type: application/json.</p>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>Parsing JSON back</h2>
-<p class="subtitle">The other half of the round trip.</p><pre><code class="language-javascript" data-trim>
-const entry = JSON.parse(&#x27;{&quot;title&quot;:&quot;Note&quot;}&#x27;);
-entry.title;   // &#x27;Note&#x27;
-</code></pre><p class="small left">Only text leaves a program, so every exchange stringifies on one side and parses on the other.</p>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>What a round trip changes</h2>
-<p class="subtitle">Anything outside the six types changes or vanishes, silently.</p><pre><code class="language-javascript" data-trim>
-JSON.stringify({
-  created: new Date(),  // becomes a string
-  draft: undefined,     // disappears
-  rating: NaN,          // becomes null
-});
+<h2>The parts of a message</h2>
+<p class="subtitle">Request and response have the same shape.</p><pre><code class="language-text" data-trim>
+HTTP/1.1 200 OK                  &lt;- status line
+Content-Type: text/html          &lt;- headers
+X-Total-Count: 3
+                                 &lt;- blank line
+&lt;!doctype html&gt; ...              &lt;- body
 </code></pre>
 </section>
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>Accepting JSON in a request</h2>
-<p class="subtitle">req.body is undefined until something reads it.</p><pre><code class="language-javascript" data-trim>
-app.use(express.json());
-</code></pre><p class="small left">It only parses a body whose Content-Type says application/json. Register it before any route that reads req.body.</p>
+<h2>Methods</h2>
+<p class="subtitle">A method is a contract, not just a verb.</p><pre><code class="language-text" data-trim>
+GET     safe   idempotent
+PUT            idempotent
+DELETE         idempotent
+POST           neither
+</code></pre><p class="small left">Safe: only reads. Idempotent: sending it twice leaves the same state as once.</p>
 </section>
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>Sharing the entries array</h2>
-<p class="subtitle">A route that adds needs every other route to see the same array.</p><pre><code class="language-javascript" data-trim>
-const entries = [ /* three notes */ ];
-
-app.get(&#x27;/entries&#x27;, (req, res) =&gt; { /* ... */ });
-app.post(&#x27;/entries&#x27;, (req, res) =&gt; { /* ... */ });
-</code></pre><p class="small left">Declared once, at module scope. Still only in memory.</p>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>A real POST route</h2>
-<p class="subtitle">Pull out the fields, store them, say what was created.</p><pre><code class="language-javascript" data-trim>
-app.post(&#x27;/entries&#x27;, (req, res) =&gt; {
-  const { title, body } = req.body;
-  const newEntry = { title, body };
-  entries.push(newEntry);
-  res.status(201).json(newEntry);
-});
+<h2>Status codes as a vocabulary</h2>
+<p class="subtitle">The first digit names the category.</p><pre><code class="language-text" data-trim>
+2xx  it worked          200, 201, 204
+3xx  go somewhere else   302
+4xx  fix the request     400, 404
+5xx  fix the server      500
 </code></pre>
 </section>
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>Trying it with curl</h2>
-<p class="subtitle">A browser address bar can only send GET.</p><pre><code class="language-bash" data-trim>
-curl -i -X POST http://localhost:3000/entries \
-  -H &quot;Content-Type: application/json&quot; \
-  -d &#x27;{&quot;title&quot;:&quot;Fourth note&quot;,&quot;body&quot;:&quot;Added&quot;}&#x27;
-</code></pre><p class="small left">-i shows the status and headers, -X picks the method, -H adds a header, -d sends the body.</p>
+<h2>Headers carry metadata</h2>
+<p class="subtitle">Information about the body, sent beside it.</p><pre><code class="language-javascript" data-trim>
+res.set(&#x27;X-Total-Count&#x27;, entries.length);
+const accept = req.get(&#x27;Accept&#x27;);
+</code></pre>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>Seeing it in the browser</h2>
+<p class="subtitle">DevTools, Network tab, reload.</p><div class="left"><p>Every request the page made is a row: method, status, type, size, time.</p><p>Click one for its Headers panel, the same headers curl printed.</p></div>
 </section>
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>Naming the pattern</h2>
-<p class="subtitle">One server, two audiences.</p><div class="left"><p><code>GET /entries</code> returns HTML for a person.</p><p><code>POST /entries</code> accepts and returns JSON for a program.</p><p><strong class="accent">That second set of routes is a JSON API. The difference is who reads the response.</strong></p></div>
+<p class="subtitle">Networks fail, so clients retry.</p><div class="left"><p>A lost response leaves the client unsure whether the request happened.</p><p><strong class="accent">Retrying an idempotent request is harmless. Retrying a POST can do the thing twice.</strong></p><p>Whether a route keeps the contract depends on how it decides what it is acting on. You test that today.</p></div>
 </section>
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>What the Reading Check Showed</h2>
-<ul><li>The one line that has to be there before req.body is anything but undefined</li><li>Why a working POST route can still lose every entry the moment the server restarts</li></ul>
+<ul><li>Which status code the client receives when a handler never sets one</li><li>Where a count belongs when a client should not have to download the whole list</li></ul>
 </section>
 
 <section>
-<h2>Three ways a body <span class="accent">goes wrong</span></h2>
-<p class="subtitle">Each one was run against this unit's code.</p><div class="left"><p><strong class="accent">No express.json():</strong> req.body is undefined, destructuring throws, the client gets 500.</p><p><strong class="accent">No Content-Type header:</strong> the body is skipped, and your own check says the fields are missing.</p><p><strong class="accent">Malformed JSON:</strong> express.json() answers 400 itself. Your route never runs.</p></div>
+<h2>There is <span class="accent">always</span> a status</h2>
+<p class="subtitle">Not setting one still sends one.</p><pre><code class="language-javascript" data-trim>
+res.json(entry);
+// HTTP/1.1 200 OK
+
+res.status(201).json(newEntry);
+// HTTP/1.1 201 Created
+</code></pre><p class="small left">Set it even for the success case, so the next reader does not have to know the default.</p>
 </section>
 
 <section>
-<h2>Copy the fields <span class="accent">you expect</span></h2>
-<p class="subtitle">Do not push req.body itself.</p><pre><code class="language-javascript" data-trim>
-// the client decides what is in here
-entries.push(req.body);
-
-// you decide what is in here
-const { title, body } = req.body;
-entries.push({ title, body });
+<h2>The count goes <span class="accent">in a header</span></h2>
+<p class="subtitle">Outside the body, so nobody parses the list to get it.</p><pre><code class="language-javascript" data-trim>
+app.get(&#x27;/entries&#x27;, (req, res) =&gt; {
+  res.set(&#x27;X-Total-Count&#x27;, entries.length);
+  res.status(200).render(&#x27;entries&#x27;,
+    { title: &#x27;My Notes&#x27;, entries });
+});
+</code></pre><pre><code class="language-text" data-trim>
+$ curl -i http://localhost:3000/entries
+HTTP/1.1 200 OK
+X-Total-Count: 3
 </code></pre>
 </section>
 
 <section>
-<h2>Memory forgets. <span class="accent">Restart it and see.</span></h2>
-<p class="subtitle">The entries array lives in server memory, nowhere else.</p><pre><code class="language-javascript" data-trim>
-// POST works. curl gets a 201 back.
-// Restart the server.
-// GET /entries: the new one is gone.
-</code></pre>
+<h2>4xx or 5xx: <span class="accent">whose problem is it?</span></h2>
+<div class="left"><p><strong class="accent">400</strong> the request was malformed or missing something.</p><p><strong class="accent">404</strong> there is nothing at that address.</p><p><strong class="accent">500</strong> the request was fine and the server failed, often an exception nobody caught.</p></div><p class="subtitle">Sending a 4xx again unchanged will not help. A 5xx is yours to fix.</p>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
-<h2>Activity: Creating Something New</h2>
-<p>Add a POST route for one small resource of your own choosing (not entries), reading two fields from <code>req.body</code>, pushing to an array, and responding <code>201</code> with the created object.</p>
-<div class="callout"><strong>Decide together:</strong> what happens if a required field is missing from the request body? Reject with <code>400</code> and a real error message, or silently create the entry with an empty or default value?</div>
+<h2>Activity: Deleting Twice</h2>
+<p>Send the same <code>DELETE</code> twice to your own server, first to <code>/entries/0</code> and then, after a restart, to <code>/entries/2</code>. Use <code>curl -i</code> and the <code>X-Total-Count</code> header to see what each request returned and what it did to the entries.</p>
+<div class="callout"><strong>Decide together:</strong> the first <code>DELETE /entries/2</code> succeeds with <code>204</code>. Should the identical second one return <code>404</code>, because nothing is there any more, or <code>204</code>, because what the client asked for is true either way?</div>
 <p class="small">The full brief and starter code are in Canvas, under this unit.
 Nothing is submitted.</p>
 
@@ -471,7 +446,7 @@ swap back now so everyone is on the same clock.</p>
 
 <section class="light" data-background-color="#F4F6FB">
 <h2>Compare and Share Back</h2>
-<p>Compare your missing-field answer with a neighbouring group. Ask them what a caller of their API would actually want to happen.</p>
+<p>Compare with a neighbouring group: what did the two addresses do, why do they behave differently, and which status did each group choose for the repeated delete?</p>
 <p class="small">Now, not before. This is its own five minutes, on its own
 timer.</p>
 <div class="timer-unit"><div class="timer-cap">Share back what you built</div><div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint"></span></div></div>
@@ -479,19 +454,12 @@ timer.</p>
 
 <section class="light" data-background-color="#F4F6FB">
 <h2>Discussion</h2>
-<ul><li>Sprint 1 only needs routes that return something. Sprint 2 is the first sprint with a real feature in it. What will your project need to create first, not just show?</li><li>You just watched a missing setup step produce a confusing error instead of an obvious one. Where else in your code could that happen?</li><li>Reject-with-400 versus silently-default came up again today. Is it the same argument as Unit 02's, or a genuinely different one?</li></ul>
+<ul><li>Sending <code>DELETE /entries/0</code> twice removed two different entries. Does that route keep the idempotency promise, and what would it take to make it keep it?</li><li>404 or 204 for a repeated delete: what did the room decide, and what would a client that retries actually need?</li><li>Where in your own project would a retried request do real damage?</li></ul>
 
 <div class="timer-row">
 <div class="timer-unit"><div class="timer-cap">Compare with the groups next to you</div><div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint"></span></div></div>
 <div class="timer-unit"><div class="timer-cap">Open discussion, whole room</div><div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint"></span></div></div>
 </div>
-</section>
-
-<section class="light" data-background-color="#F4F6FB">
-<h2><span class="accent">Sprint 1</span> is due tonight</h2>
-<p class="subtitle">A running server with two routes of your own.</p>
-<ul><li>Clone your own repository into an empty folder and run it. If it does not start from a clean clone, it does not run for me either.</li><li>Two routes relevant to your domain, and a README that says how to start it.</li><li>The Share Your Project discussion is due tonight too.</li></ul>
-<div class="timer-unit"><div class="timer-cap">Sprint questions</div><div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint"></span></div></div>
 </section>
 
 <section>
@@ -512,7 +480,7 @@ data-placeholder="click to type"></span></p>
 <section>
 <div class="bars"><div></div><div></div><div></div></div>
 <h2>Looking Ahead</h2>
-<p>Unit 06, HTTP: the Protocol Underneath, is Thursday. Today you wrote <code>res.status(201)</code> without asking what a status code is; Unit 06 opens up the request and response text Express has been handling for you. Lab 03 on Friday then covers pulling a teammate's changes and resolving the conflicts that come with them.</p>
+<p>Unit 07, Living with Asynchrony, is Tuesday. Every request today finished instantly because the entries live in memory. Real servers read files and call other servers, all of which take time, and Unit 07 asks what a route does while it waits.</p>
 </section>
 
 </div>
