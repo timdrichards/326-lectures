@@ -362,7 +362,35 @@ content  -&gt;  padding  -&gt;  border  -&gt;  margin
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>What the Reading Check Showed</h2>
-<ul><li>Why flex-wrap is the one property that turns a single overflowing row into cards that continue on a new line</li><li>The one place a correct link tag and a real stylesheet still produce zero visible styling</li></ul>
+<ul><li><strong>Q1, what makes the row wrap: 50 of 52.</strong> <code>flex-wrap</code></li><li><strong>Q2, a link tag but no styles: 40 of 52.</strong> The rest picked inline CSS, an import in server.js, or a static folder</li><li><strong>Your top question, nine of you:</strong> how <code>style.css</code> in <code>public/</code> reaches the page</li><li><strong>Also asked:</strong> <code>flex: 1 1 200px</code>, gap or margin, rem or px</li></ul>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>How style.css Reaches the Page</h2>
+<p class="subtitle">Two requests, not one.</p><pre><code class="language-javascript" data-trim>
+&lt;!-- views/entries.ejs --&gt;
+&lt;link rel=&quot;stylesheet&quot; href=&quot;/style.css&quot;&gt;
+
+// server.js
+app.use(express.static(&#x27;public&#x27;));
+
+// the browser asks:  GET /style.css
+// Express sends:     public/style.css
+</code></pre><p class="small left">The page arrives first and names its stylesheet. The browser then asks for it separately. Without the static line that second request 404s, which is Q2. The href is a URL, not a path on your disk.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>What flex: 1 1 200px Says</h2>
+<pre><code class="language-css" data-trim>
+li {
+  flex: 1 1 200px;  /* grow, shrink, basis */
+}
+</code></pre><div class="left"><p class="small">Every card <strong class="accent">starts</strong> at 200px, however much text it holds.</p><p class="small">Room left over? <strong class="accent">Grow</strong> shares it equally, since every card has a grow of 1.</p><p class="small">Not enough room? <strong class="accent">Shrink</strong> takes it back. With <code>flex-wrap</code>, a card that cannot fit at 200px plus the gap moves to the next line instead.</p></div>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>Three Small Ones</h2>
+<div class="left"><p class="small"><strong class="accent">gap or margin?</strong> <code>gap</code> belongs to the flex container and only goes between items. A margin belongs to one item and applies at the edges too. For a row of cards, use gap.</p><p class="small"><strong class="accent">rem or px?</strong> <code>1rem</code> is the root font size, which is 16px only by default. Raise the browser's default text size and rem grows with it; px does not.</p><p class="small"><strong class="accent">What is nav a?</strong> Every <code>a</code> inside a <code>nav</code>, here the header links. <code>.site-header</code> is the same idea by class: the <code>header</code> in <code>partials/header.ejs</code>.</p></div>
 </section>
 
 <section>
