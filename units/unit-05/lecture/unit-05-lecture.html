@@ -354,6 +354,70 @@ res.json({ id: 4 });       // OUTGOING: object -&gt; text
 </section>
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>The round trip, <span class="accent">from the board</span></h2>
+<p class="subtitle">Straight off the board, so it does not get wiped.</p><svg viewBox="0 0 1480 610" role="img"  style="width:100%;max-width:1420px;height:auto;display:block;margin:0.15em auto 0;"  aria-label="The JSON round trip. A client box labelled B, standing in for curl, sends an HTTP request whose body is JSON text to a server box labelled S. Express middleware, express.json(), runs JSON.parse on that text and hands a JavaScript object to your routes. One route calls res.json, which runs JSON.stringify and sends JSON text back to the client. The routes only ever see a JavaScript object; everything on the wire is text.">
+  <defs>
+    <marker id="u5ah" viewBox="0 0 10 10" refX="9" refY="5"
+            markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1A1B26"/>
+    </marker>
+  </defs>
+
+  <!-- client -->
+  <rect x="30" y="145" width="150" height="115" rx="10" fill="#FFFFFF" stroke="#1A1B26" stroke-width="3"/>
+  <text x="105" y="205" text-anchor="middle" font-family="Consolas,'SF Mono',Menlo,monospace" font-size="46" font-weight="700" fill="#1A1B26">B</text>
+  <text x="105" y="240" text-anchor="middle" font-family="Consolas,'SF Mono',Menlo,monospace" font-size="21" fill="#5C6B7A">"curl"</text>
+
+  <!-- request -->
+  <line x1="180" y1="190" x2="452" y2="190" stroke="#1A1B26" stroke-width="3" marker-end="url(#u5ah)"/>
+  <text x="316" y="172" text-anchor="middle" font-family="Calibri,'Segoe UI',sans-serif" font-size="26" fill="#1A1B26">HTTP Req</text>
+  <text x="316" y="218" text-anchor="middle" font-family="Calibri,'Segoe UI',sans-serif" font-size="20" fill="#5C6B7A">body: json text</text>
+
+  <!-- server -->
+  <rect x="460" y="145" width="130" height="115" rx="10" fill="#FFFFFF" stroke="#1A1B26" stroke-width="3"/>
+  <text x="525" y="205" text-anchor="middle" font-family="Consolas,'SF Mono',Menlo,monospace" font-size="46" font-weight="700" fill="#1A1B26">S</text>
+  <text x="525" y="240" text-anchor="middle" font-family="Calibri,'Segoe UI',sans-serif" font-size="20" fill="#5C6B7A">server</text>
+
+  <!-- middleware -->
+  <path d="M630,120 L630,106 L890,106 L890,120" fill="none" stroke="#5C6B7A" stroke-width="2"/>
+  <text x="760" y="92" text-anchor="middle" font-family="Calibri,'Segoe UI',sans-serif" font-size="24" fill="#5C6B7A">Express middleware</text>
+  <rect x="630" y="145" width="260" height="115" rx="10" fill="#EEF2FF" stroke="#3D59A1" stroke-width="3"/>
+  <text x="760" y="212" text-anchor="middle" font-family="Consolas,'SF Mono',Menlo,monospace" font-size="29" fill="#1A1B26">express.json()</text>
+  <line x1="590" y1="203" x2="622" y2="203" stroke="#1A1B26" stroke-width="3" marker-end="url(#u5ah)"/>
+
+  <!-- parse annotation -->
+  <line x1="760" y1="332" x2="760" y2="268" stroke="#3D59A1" stroke-width="3" marker-end="url(#u5ah)"/>
+  <text x="760" y="364" text-anchor="middle" font-family="Consolas,'SF Mono',Menlo,monospace" font-size="24" font-weight="700" fill="#3D59A1">JSON.parse</text>
+  <text x="760" y="392" text-anchor="middle" font-family="Calibri,'Segoe UI',sans-serif" font-size="20" fill="#5C6B7A">string → JS obj</text>
+
+  <!-- into the routes -->
+  <line x1="890" y1="203" x2="982" y2="203" stroke="#1A1B26" stroke-width="3" marker-end="url(#u5ah)"/>
+  <text x="936" y="180" text-anchor="middle" font-family="Consolas,'SF Mono',Menlo,monospace" font-size="23" font-weight="700" fill="#3D59A1">JS obj</text>
+
+  <!-- routes -->
+  <path d="M990,120 L990,106 L1450,106 L1450,120" fill="none" stroke="#5C6B7A" stroke-width="2"/>
+  <text x="1220" y="92" text-anchor="middle" font-family="Calibri,'Segoe UI',sans-serif" font-size="24" fill="#5C6B7A">your routes</text>
+  <rect x="990" y="145" width="140" height="115" rx="10" fill="#FFFFFF" stroke="#1A1B26" stroke-width="2" opacity="0.45"/>
+  <rect x="1310" y="145" width="140" height="115" rx="10" fill="#FFFFFF" stroke="#1A1B26" stroke-width="2" opacity="0.45"/>
+  <rect x="1150" y="145" width="140" height="115" rx="10" fill="#EEF2FF" stroke="#3D59A1" stroke-width="3"/>
+  <text x="1220" y="210" text-anchor="middle" font-family="Consolas,'SF Mono',Menlo,monospace" font-size="17" fill="#1A1B26">POST /entries</text>
+
+  <!-- response -->
+  <line x1="1220" y1="260" x2="1220" y2="470" stroke="#1A1B26" stroke-width="3"/>
+  <text x="1248" y="322" font-family="Consolas,'SF Mono',Menlo,monospace" font-size="24" fill="#1A1B26">res.json(jsObj)</text>
+  <text x="1248" y="360" font-family="Consolas,'SF Mono',Menlo,monospace" font-size="24" font-weight="700" fill="#3D59A1">JSON.stringify</text>
+  <text x="1248" y="388" font-family="Calibri,'Segoe UI',sans-serif" font-size="20" fill="#5C6B7A">JS obj → string</text>
+  <line x1="1220" y1="470" x2="112" y2="470" stroke="#1A1B26" stroke-width="3"/>
+  <line x1="110" y1="470" x2="110" y2="266" stroke="#1A1B26" stroke-width="3" marker-end="url(#u5ah)"/>
+  <text x="650" y="448" text-anchor="middle" font-family="Calibri,'Segoe UI',sans-serif" font-size="26" fill="#1A1B26">HTTP Res</text>
+  <text x="650" y="500" text-anchor="middle" font-family="Calibri,'Segoe UI',sans-serif" font-size="20" fill="#5C6B7A">body: json text</text>
+
+  <!-- takeaway -->
+  <text x="740" y="572" text-anchor="middle" font-family="Calibri,'Segoe UI',sans-serif" font-size="25" fill="#1A1B26">Your routes only ever see a JavaScript object. Everything on the wire is text.</text>
+</svg>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2><span class="accent">Nobody ships curl</span> to users</h2>
 <p class="subtitle">Four of you asked who actually calls this. Fair question.</p><div class="left"><p><strong class="accent">Today:</strong> curl, because it is the shortest way to prove the route works.</p><p><strong class="accent">Unit 08:</strong> the browser itself, with a form and with fetch.</p><p><strong class="accent">Your sprint:</strong> your own pages, calling your own routes.</p></div><pre><code class="language-text" data-trim>
 // the 201 body is not just a receipt
