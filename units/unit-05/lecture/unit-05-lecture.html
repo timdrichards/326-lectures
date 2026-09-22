@@ -362,32 +362,6 @@ res.json({ id: 4 });       // OUTGOING: object -&gt; text
 </code></pre>
 </section>
 
-<section>
-<h2>Three ways a body <span class="accent">goes wrong</span></h2>
-<p class="subtitle">Each one was run against this unit's code.</p><div class="left"><p><strong class="accent">No express.json():</strong> req.body is undefined, destructuring throws, the client gets 500.</p><p><strong class="accent">No Content-Type header:</strong> the body is skipped, and your own check says the fields are missing.</p><p><strong class="accent">Malformed JSON:</strong> express.json() answers 400 itself. Your route never runs.</p></div>
-</section>
-
-<section>
-<h2>Copy the fields <span class="accent">you expect</span></h2>
-<p class="subtitle">Do not push req.body itself.</p><pre><code class="language-javascript" data-trim>
-// the client decides what is in here
-entries.push(req.body);
-
-// you decide what is in here
-const { title, body } = req.body;
-entries.push({ title, body });
-</code></pre>
-</section>
-
-<section>
-<h2>Memory forgets. <span class="accent">Restart it and see.</span></h2>
-<p class="subtitle">The entries array lives in server memory, nowhere else.</p><pre><code class="language-javascript" data-trim>
-// POST works. curl gets a 201 back.
-// Restart the server.
-// GET /entries: the new one is gone.
-</code></pre>
-</section>
-
 <section class="light" data-background-color="#F4F6FB">
 <h2>Activity: Creating Something New</h2>
 <p>Add a POST route for one small resource of your own choosing (not entries), reading two fields from <code>req.body</code>, pushing to an array, and responding <code>201</code> with the created object.</p>
