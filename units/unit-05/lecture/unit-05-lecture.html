@@ -314,114 +314,52 @@
 </section>
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>Programs Need Data, Not Pages</h2>
-<p class="subtitle">Everything so far was built for a person to read. Most requests are programs talking to programs.</p><div class="left"><p><strong class="accent">A program cannot usefully read a web page.</strong></p><p><strong class="accent">JSON is text both sides can take apart the same way.</strong></p><p><strong class="accent">Today the server gets a second audience: code.</strong></p></div><pre><code class="language-text" data-trim>
-GET  /entries  -&gt;  HTML, for a browser
-POST /entries  -&gt;  JSON, for a program
-</code></pre>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>What Unit 05 Covered</h2>
-<div class="left recap"><p><strong class="accent">The starting problem</strong></p><p><strong class="accent">What JSON looks like</strong></p><p><strong class="accent">From objects to text</strong></p><p><strong class="accent">Parsing JSON back</strong></p><p><strong class="accent">What a round trip changes</strong></p><p><strong class="accent">Accepting JSON in a request</strong></p><p><strong class="accent">Sharing the entries array</strong></p><p><strong class="accent">A real POST route</strong></p><p><strong class="accent">Trying it with curl</strong></p><p><strong class="accent">Naming the pattern</strong></p></div>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>The starting problem</h2>
-<p class="subtitle">The entries lived inside one route handler.</p><pre><code class="language-javascript" data-trim>
-app.get(&#x27;/entries&#x27;, (req, res) =&gt; {
-  const entries = [ /* three notes */ ];
-  res.render(&#x27;entries&#x27;, { title: &#x27;My Notes&#x27;, entries });
-});
-</code></pre><p class="small left">Adding one meant editing the file and restarting. Only a browser could use the result.</p>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>What JSON looks like</h2>
-<p class="subtitle">Six value types, and nothing else.</p><pre><code class="language-json" data-trim>
-{
-  &quot;title&quot;: &quot;First note&quot;,
-  &quot;pinned&quot;: false,
-  &quot;words&quot;: 5,
-  &quot;tags&quot;: [&quot;css&quot;, &quot;lecture&quot;],
-  &quot;author&quot;: null
-}
-</code></pre><p class="small left">Stricter than JavaScript: double quotes on keys and strings, no trailing comma, no comments.</p>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>From objects to text</h2>
-<p class="subtitle">An object only exists inside one program. Text can travel.</p><pre><code class="language-javascript" data-trim>
-JSON.stringify({ title: &#x27;Note&#x27; })
-// &#x27;{&quot;title&quot;:&quot;Note&quot;}&#x27;
-</code></pre><p class="small left">res.json() does this for you, and also sets Content-Type: application/json.</p>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>Parsing JSON back</h2>
-<p class="subtitle">The other half of the round trip.</p><pre><code class="language-javascript" data-trim>
-const entry = JSON.parse(&#x27;{&quot;title&quot;:&quot;Note&quot;}&#x27;);
-entry.title;   // &#x27;Note&#x27;
-</code></pre><p class="small left">Only text leaves a program, so every exchange stringifies on one side and parses on the other.</p>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>What a round trip changes</h2>
-<p class="subtitle">Anything outside the six types changes or vanishes, silently.</p><pre><code class="language-javascript" data-trim>
-JSON.stringify({
-  created: new Date(),  // becomes a string
-  draft: undefined,     // disappears
-  rating: NaN,          // becomes null
-});
-</code></pre>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>Accepting JSON in a request</h2>
-<p class="subtitle">req.body is undefined until something reads it.</p><pre><code class="language-javascript" data-trim>
-app.use(express.json());
-</code></pre><p class="small left">It only parses a body whose Content-Type says application/json. Register it before any route that reads req.body.</p>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>Sharing the entries array</h2>
-<p class="subtitle">A route that adds needs every other route to see the same array.</p><pre><code class="language-javascript" data-trim>
-const entries = [ /* three notes */ ];
-
-app.get(&#x27;/entries&#x27;, (req, res) =&gt; { /* ... */ });
-app.post(&#x27;/entries&#x27;, (req, res) =&gt; { /* ... */ });
-</code></pre><p class="small left">Declared once, at module scope. Still only in memory.</p>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>A real POST route</h2>
-<p class="subtitle">Pull out the fields, store them, say what was created.</p><pre><code class="language-javascript" data-trim>
-app.post(&#x27;/entries&#x27;, (req, res) =&gt; {
-  const { title, body } = req.body;
-  const newEntry = { title, body };
-  entries.push(newEntry);
-  res.status(201).json(newEntry);
-});
-</code></pre>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>Trying it with curl</h2>
-<p class="subtitle">A browser address bar can only send GET.</p><pre><code class="language-bash" data-trim>
-curl -i -X POST http://localhost:3000/entries \
-  -H &quot;Content-Type: application/json&quot; \
-  -d &#x27;{&quot;title&quot;:&quot;Fourth note&quot;,&quot;body&quot;:&quot;Added&quot;}&#x27;
-</code></pre><p class="small left">-i shows the status and headers, -X picks the method, -H adds a header, -d sends the body.</p>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>Naming the pattern</h2>
-<p class="subtitle">One server, two audiences.</p><div class="left"><p><code>GET /entries</code> returns HTML for a person.</p><p><code>POST /entries</code> accepts and returns JSON for a program.</p><p><strong class="accent">That second set of routes is a JSON API. The difference is who reads the response.</strong></p></div>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>What the Reading Check Showed</h2>
-<ul><li>The one line that has to be there before req.body is anything but undefined</li><li>Why a working POST route can still lose every entry the moment the server restarts</li></ul>
+<ul><li>Both multiple-choice questions: <strong>43 of 50</strong>. The misses were scattered, so nothing there needs re-teaching.</li><li><strong>curl, from nine of you.</strong> What it is, what it prints back, and why we use it at all.</li><li><strong>JSON against a JavaScript object, from seven.</strong> Why it is stricter, and what survives a round trip.</li><li><strong>express.json(), from six.</strong> When it runs, what it does with a bad body, how it differs from res.json().</li><li><strong>Who calls this, if not curl? From four.</strong></li></ul>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>What <span class="accent">curl</span> actually is</h2>
+<p class="subtitle">Nine of you asked. It is a client that prints instead of rendering.</p><pre><code class="language-text" data-trim>
+curl -X POST localhost:3000/entries \
+  -H &quot;Content-Type: application/json&quot; \
+  -d &#x27;{&quot;title&quot;:&quot;From curl&quot;,&quot;body&quot;:&quot;Hello&quot;}&#x27;
+
+{&quot;id&quot;:4,&quot;title&quot;:&quot;From curl&quot;,&quot;body&quot;:&quot;Hello&quot;}
+</code></pre><p class="small left">The browser sends a request and draws the answer. curl sends the same request and prints the answer. That printed line <em>is</em> the response body.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>JSON is <span class="accent">text</span>. An object is not.</h2>
+<p class="subtitle">Seven asked what actually changes on the round trip. Run this one live.</p><pre><code class="language-javascript" data-trim>
+const before = { title: &quot;a&quot;, when: new Date(),
+                 draft: undefined, score: NaN };
+
+JSON.parse(JSON.stringify(before));
+
+// title: &quot;a&quot;
+// when:  &quot;2026-09-22T12:00:00.000Z&quot;  (was a Date)
+// score: null                        (was NaN)
+// draft: gone
+</code></pre><p class="small left">The Date came back a string. draft vanished. NaN became null. Six types survive, and anything else is converted or dropped.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2><span class="accent">express.json()</span> and <span class="accent">res.json()</span> are opposites</h2>
+<p class="subtitle">Same word, opposite directions. This was asked outright.</p><pre><code class="language-javascript" data-trim>
+app.use(express.json());   // INCOMING: text -&gt; req.body
+
+res.json({ id: 4 });       // OUTGOING: object -&gt; text
+</code></pre><p class="small left">One parses the request on the way in. The other serialises your answer on the way out. Neither one knows about the other.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2><span class="accent">Nobody ships curl</span> to users</h2>
+<p class="subtitle">Four of you asked who actually calls this. Fair question.</p><div class="left"><p><strong class="accent">Today:</strong> curl, because it is the shortest way to prove the route works.</p><p><strong class="accent">Unit 08:</strong> the browser itself, with a form and with fetch.</p><p><strong class="accent">Your sprint:</strong> your own pages, calling your own routes.</p></div><pre><code class="language-text" data-trim>
+// the 201 body is not just a receipt
+{&quot;id&quot;:4,&quot;title&quot;:&quot;From curl&quot;,&quot;body&quot;:&quot;Hello&quot;}
+//  ^ the id the server assigned, not the client
+</code></pre>
 </section>
 
 <section>
