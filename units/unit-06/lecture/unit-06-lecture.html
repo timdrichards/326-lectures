@@ -201,20 +201,22 @@
 
   .reveal .slide-number{ font-size:0.5em; }
 
-  /* ===================== EDITABLE WORD FIELD =====================
-    The exit-ticket "word on the board" blank is directly editable in the
-    slide, for a room with no physical board, or as a backup if the word was
-    never written up. Click it and type; it is a real contenteditable, not a
-    form field, so reveal's own keyboard shortcuts stay disabled while it has
-    focus (reveal checks for exactly this before acting on a keypress).
-    Persisted to localStorage per deck, so a reload mid-class does not lose it.
+  /* ===================== EXIT-TICKET WORD =====================
+    Picked at random the first time the exit-ticket slide is reached, ported
+    from the COMPSCI 879 decks on 2026-09-24. It does not exist until the room
+    reaches the slide, and once picked it stays, so stepping back and forward
+    never changes a word people have already copied. "New word" rolls again.
+    Nothing is stored, so a fresh load (the next section, the next class)
+    always gets a new word. Its only job is that everyone in the room types
+    the same one.
   */
-  .wordblank{
-    outline:none; cursor:text; display:inline-block; min-width:3em;
-    padding:0 0.15em; border-bottom:0.07em dashed var(--accent);
+  .ticket-word{ display:inline-block; min-width:3em; font-weight:700; }
+  .word-again{
+    margin-left:0.6em; font:inherit; font-size:0.45em; vertical-align:middle;
+    padding:0.15em 0.6em; border-radius:0.4em; cursor:pointer;
+    border:1px solid currentColor; background:transparent; color:inherit; opacity:0.55;
   }
-  .wordblank:empty::before{ content:attr(data-placeholder); opacity:0.45; font-weight:400; }
-  .wordblank:focus{ border-bottom-style:solid; }
+  .word-again:hover{ opacity:1; }
 </style>
 </head>
 <body>
@@ -437,8 +439,7 @@ excused absence.</p>
 <p><strong>1.</strong> Who did you work with? Name (as on Canvas) + email.</p><p><strong>2.</strong> Today's word.</p><p><strong>3.</strong> What did your group decide, and why?</p>
 </div>
 <p class="accent" style="font-size:1.3em;margin:0.15em 0">Word: <span
-class="wordblank" contenteditable="true" spellcheck="false"
-data-placeholder="click to type"></span></p>
+class="ticket-word">...</span><button class="word-again" type="button">New word</button></p>
 </section>
 
 <section>
@@ -459,21 +460,28 @@ data-placeholder="click to type"></span></p>
     plugins: [ RevealNotes, RevealHighlight ]
   });
 
-  /* Editable word field. Keyed by the deck's own title, so each unit's word
-     persists independently in the same browser and reloading mid-class does
-     not lose what was typed. Enter blurs rather than inserting a newline,
-     since this is one line of text, not a note. */
-  document.querySelectorAll('.wordblank').forEach(function(el){
-    var key = 'lecture-word:' + document.title;
-    var saved = localStorage.getItem(key);
-    if (saved) el.textContent = saved;
-    el.addEventListener('input', function(){
-      localStorage.setItem(key, el.textContent);
+  /* Exit-ticket word: see the EXIT-TICKET WORD note in the CSS above. */
+  (function(){
+    var W = ['anchor','basket','candle','copper','dolphin','ember','fabric',
+      'garden','harbor','island','jacket','kettle','lantern','marble','needle',
+      'orchard','pepper','quarry','ribbon','saddle','timber','umbrella','velvet',
+      'walnut','yellow','zebra','bridge','compass','driftwood','feather',
+      'granite','hollow','juniper','ladder','meadow','nutmeg','otter','pebble',
+      'rooster','satchel'];
+    document.querySelectorAll('.ticket-word').forEach(function(el){
+      var sec = el.closest('section'), rolled = false;
+      var btn = el.parentNode.querySelector('.word-again');
+      function roll(){
+        var w; do { w = W[Math.floor(Math.random()*W.length)]; }
+        while (W.length > 1 && w === el.textContent);
+        el.textContent = w; rolled = true;
+      }
+      function arrive(){ if (!rolled && Reveal.getCurrentSlide() === sec) roll(); }
+      if (btn) btn.addEventListener('click', function(e){ e.stopPropagation(); roll(); btn.blur(); });
+      Reveal.on('ready', arrive);
+      Reveal.on('slidechanged', arrive);
     });
-    el.addEventListener('keydown', function(e){
-      if (e.key === 'Enter'){ e.preventDefault(); el.blur(); }
-    });
-  });
+  })();
 
   /* ===================== SUMMONED TIMER (press T) =====================
      Ported from the COMPSCI 879 deck chrome on 2026-09-24. T toggles the panel
