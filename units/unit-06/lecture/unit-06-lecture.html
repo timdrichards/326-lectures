@@ -271,6 +271,21 @@ Content-Type: application/json; charset=utf-8
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
+<h2>A <span class="accent">400</span>: the client caused it</h2>
+<p class="subtitle">The request left out a field. The server checked, and said so.</p><pre><code class="language-text" data-trim>
+$ curl -i -X POST localhost:3000/entries \
+    -H &quot;Content-Type: application/json&quot; \
+    -d &#x27;{&quot;title&quot;:&quot;Groceries&quot;}&#x27;
+HTTP/1.1 400 Bad Request
+Content-Type: application/json; charset=utf-8
+
+{&quot;error&quot;:&quot;title and body are required&quot;}
+
+# the server&#x27;s terminal: nothing at all.
+</code></pre><p class="tiny" style="margin-top:0.4em">Send <code>"body":"Milk"</code> too and the same request gets <strong>201 Created</strong>. Nothing on the server changed.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
 <h2>What a <span class="accent">500</span> looks like</h2>
 <p class="subtitle">The status says whose side. The terminal says what.</p><pre><code class="language-text" data-trim>
 $ curl -i -X POST localhost:3000/entries ...
