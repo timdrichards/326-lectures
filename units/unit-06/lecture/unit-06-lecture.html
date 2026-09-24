@@ -277,7 +277,21 @@ TypeError: Cannot destructure property &#x27;title&#x27;
 
 <section class="light" data-background-color="#F4F6FB">
 <h2>Why a <span class="accent">header</span>, and not the JSON?</h2>
-<p class="subtitle">The body is the thing you asked for. Headers are facts about it.</p><div class="left small"><p><strong class="accent">The body is not always JSON.</strong> <code>/entries</code> sends HTML. A header works for any body.</p><p><strong class="accent">The body keeps its shape.</strong> A list stays a list, with no <code>{"entries": ..., "total": 3}</code> wrapper for every client to unpack.</p><p><strong class="accent">Headers can be read alone</strong>, or asked for alone, without the body.</p><p><strong class="accent">Tools know the standard ones.</strong> A browser acts on Content-Type without knowing your data.</p></div><p class="small">A total inside the JSON is also a common, reasonable design. It is a choice, not a rule.</p>
+<p class="subtitle">The body is the thing you asked for. Headers are facts about it.</p><div class="left small"><p><strong class="accent">A cheap way to pass information back.</strong> The browser can read a header without downloading and parsing the body, and can even ask for the headers alone.</p><p><strong class="accent">Details about the content being returned.</strong> <code style="white-space:nowrap">Content-Type</code> says what the body is, so the reader knows how to handle it before reading a byte of it.</p><p><strong class="accent">It works for any body.</strong> <code>/entries</code> sends HTML, where a count field has nowhere sensible to go. And a JSON list can stay a list.</p></div><p class="small">A total inside the JSON is also a common, reasonable design. It is a choice, not a rule.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Example: <span class="accent">Content-Type</span></h2>
+<p class="subtitle">One server, three kinds of body.</p><pre><code class="language-text" data-trim>
+$ curl -I localhost:3000/entries
+Content-Type: text/html; charset=utf-8
+
+$ curl -I localhost:3000/style.css
+Content-Type: text/css; charset=UTF-8
+
+$ curl -i -X POST localhost:3000/entries ...
+Content-Type: application/json; charset=utf-8
+</code></pre><div class="left small"><p>The browser reads this before the body. <code>text/html</code> it draws as a page, <code>text/css</code> it applies as a style sheet, and <code>application/json</code> is data for code to read. Label a page <code>text/plain</code> and the browser shows the raw tags instead.</p></div>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
