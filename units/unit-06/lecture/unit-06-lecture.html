@@ -429,6 +429,11 @@ app.get(&#x27;/entries/:id/delete&#x27;, (req, res) =&gt; {
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
+<h2>How the units build <span class="accent">one app</span></h2>
+<p class="subtitle">One notes app, changed by every unit. Your sprints do the same.</p><table style="font-size:0.72em;border-collapse:collapse;margin:0.2em auto;width:100%"><tr><td style="padding:0.22em 0.5em;border-bottom:1px solid #d8dee4;text-align:left;vertical-align:top;font-weight:700;white-space:nowrap">Units 01-04</td><td style="padding:0.22em 0.5em;border-bottom:1px solid #d8dee4;text-align:left;vertical-align:top">A server, routes, pages, style</td><td style="padding:0.22em 0.5em;border-bottom:1px solid #d8dee4;text-align:left;vertical-align:top;white-space:nowrap;opacity:0.8">Sprint 1</td></tr><tr><td style="padding:0.22em 0.5em;border-bottom:1px solid #d8dee4;text-align:left;vertical-align:top;font-weight:700;white-space:nowrap">Units 05-06</td><td style="padding:0.22em 0.5em;border-bottom:1px solid #d8dee4;text-align:left;vertical-align:top">Data in and out: JSON and HTTP</td><td style="padding:0.22em 0.5em;border-bottom:1px solid #d8dee4;text-align:left;vertical-align:top;white-space:nowrap;opacity:0.8">Sprint 2</td></tr><tr><td style="padding:0.22em 0.5em;border-bottom:1px solid #d8dee4;text-align:left;vertical-align:top;font-weight:700;white-space:nowrap">Units 07-11</td><td style="padding:0.22em 0.5em;border-bottom:1px solid #d8dee4;text-align:left;vertical-align:top">The browser sends it; the server is split into layers</td><td style="padding:0.22em 0.5em;border-bottom:1px solid #d8dee4;text-align:left;vertical-align:top;white-space:nowrap;opacity:0.8">Sprint 2</td></tr><tr><td style="padding:0.22em 0.5em;border-bottom:1px solid #d8dee4;text-align:left;vertical-align:top;font-weight:700;white-space:nowrap">Units 12-15</td><td style="padding:0.22em 0.5em;border-bottom:1px solid #d8dee4;text-align:left;vertical-align:top">A real database, tests, partial reloads, design</td><td style="padding:0.22em 0.5em;border-bottom:1px solid #d8dee4;text-align:left;vertical-align:top;white-space:nowrap;opacity:0.8">Sprint 3</td></tr><tr><td style="padding:0.22em 0.5em;border-bottom:1px solid #d8dee4;text-align:left;vertical-align:top;font-weight:700;white-space:nowrap">Units 16-18</td><td style="padding:0.22em 0.5em;border-bottom:1px solid #d8dee4;text-align:left;vertical-align:top">Accessibility, logging in, who may do what</td><td style="padding:0.22em 0.5em;border-bottom:1px solid #d8dee4;text-align:left;vertical-align:top;white-space:nowrap;opacity:0.8">Sprint 4</td></tr><tr><td style="padding:0.22em 0.5em;border-bottom:1px solid #d8dee4;text-align:left;vertical-align:top;font-weight:700;white-space:nowrap">All units</td><td style="padding:0.22em 0.5em;border-bottom:1px solid #d8dee4;text-align:left;vertical-align:top">Polish and present it</td><td style="padding:0.22em 0.5em;border-bottom:1px solid #d8dee4;text-align:left;vertical-align:top;white-space:nowrap;opacity:0.8">Sprint 5 and the Project</td></tr></table><p class="tiny" style="margin-top:0.5em">Each sprint lists the units it draws on. When a unit feels disconnected, read the next sprint's Deliverables: that is where it gets used.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
 <h2>Activity: Deleting Twice</h2>
 <p>Send the same <code>DELETE</code> twice to your own server, first to <code>/entries/0</code> and then, after a restart, to <code>/entries/2</code>. Use <code>curl -i</code> and the <code>X-Total-Count</code> header to see what each request returned and what it did to the entries.</p>
 <div class="callout"><strong>Decide together:</strong> the first <code>DELETE /entries/2</code> succeeds with <code>204</code>. Should the identical second one return <code>404</code>, because nothing is there any more, or <code>204</code>, because what the client asked for is true either way?</div>
@@ -440,23 +445,55 @@ Nothing is submitted.</p>
 <section class="light" data-background-color="#F4F6FB">
 <h2>Questions for the Room</h2>
 <p class="subtitle">One group answers each. Put a hand up.</p>
-<ul><li>What happened the second time you sent <code>DELETE /entries/0</code>? What did <code>X-Total-Count</code> say after each one?</li><li>What happened the second time you sent <code>DELETE /entries/2</code>?</li><li>For the repeated delete, did your group choose <code>404</code> or <code>204</code>, and why?</li></ul>
+<ul><li>What happened the second time you sent <code>DELETE /entries/0</code>? What did <code>X-Total-Count</code> say after each one?</li><li>Which request got an error the <strong>client</strong> caused, and what in the response told you?</li><li>For the repeated delete, did your group choose <code>404</code> or <code>204</code>, and why?</li></ul>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
 <h2>Discussion</h2>
-<ul><li>Sending <code>DELETE /entries/0</code> twice removed two different entries. Does that route keep the idempotency promise, and what would it take to make it keep it?</li><li>404 or 204 for a repeated delete: what did the room decide, and what would a client that retries actually need?</li><li>Where in your own project would a retried request do real damage?</li></ul>
+<ul><li>Sending <code>DELETE /entries/0</code> twice removed two different entries. Does that route keep the idempotency promise, and what would it take to make it keep it?</li><li>404 or 204 for a repeated delete: what did the room decide, and what would a client that retries actually need?</li><li>A client sends malformed JSON and gets a <code>400</code>. The client caused it, so what is the server's job?</li></ul>
 
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Bad JSON: the right <span class="accent">400</span></h2>
+<p class="subtitle">The client caused it. Here is what our server sends back.</p><pre><code class="language-text" data-trim>
+$ curl -i -X POST localhost:3000/entries \
+    -H &quot;Content-Type: application/json&quot; \
+    -d &#x27;{title:&quot;Groceries&quot;}&#x27;
+HTTP/1.1 400 Bad Request
+Content-Type: text/html; charset=utf-8
+
+&lt;pre&gt;SyntaxError: Expected property name ...
+ at parse (.../body-parser/lib/types/json.js:96:19)
+</code></pre><p class="tiny" style="margin-top:0.4em">Right status, wrong body: HTML, with our stack trace and file paths. The same trace fills our terminal.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>The fix: an <span class="accent">error handler</span></h2>
+<pre><code class="language-js" data-trim>
+// after every route, before app.listen
+app.use((err, req, res, next) =&gt; {
+  if (err.type === &#x27;entity.parse.failed&#x27;) {
+    res.status(400).json({ error: &#x27;invalid JSON&#x27; });
+    return;
+  }
+  next(err);
+});
+</code></pre><pre><code class="language-text" data-trim>
+HTTP/1.1 400 Bad Request
+Content-Type: application/json; charset=utf-8
+{&quot;error&quot;:&quot;invalid JSON&quot;}
+</code></pre><p class="tiny" style="margin-top:0.3em">Still a 400. Now the client can read it, nothing leaks, and the terminal stays quiet.</p>
 </section>
 
 <section>
 <h2>Exit Ticket</h2>
-<p class="subtitle">In Canvas, before you leave. 3 questions, two minutes.</p>
+<p class="subtitle">In Canvas, before you leave. 4 questions, two minutes.</p>
 <p class="tiny" style="max-width:30em;margin:0 auto 0.4em;opacity:0.85">
 Individual, not one per group. No makeup if forgotten, except a documented
 excused absence.</p>
 <div class="callout dense">
-<p><strong>1.</strong> Who did you work with? Name (as on Canvas) + email.</p><p><strong>2.</strong> Today's word.</p><p><strong>3.</strong> What did your group decide, and why?</p>
+<p><strong>1.</strong> Who did you work with? Name (as on Canvas) + email.</p><p><strong>2.</strong> Today's word.</p><p><strong>3.</strong> Which request in your table surprised you most? Give the request, what you predicted, what actually came back, and what that told you about who caused it.</p><p><strong>4.</strong> Anything still confusing, a question you did not get to ask, or a suggestion for me?</p>
 </div>
 <p class="accent" style="font-size:1.3em;margin:0.15em 0">Word: <span
 class="ticket-word">...</span><button class="word-again" type="button">New word</button></p>
