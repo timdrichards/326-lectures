@@ -155,121 +155,49 @@
     max-width:34em; }
   .callout.dense p{ margin-bottom:0.4em; line-height:1.3; }
 
-  /* ===================== TIMER =====================
-    Every timed thing in the room gets one: reading check, activity, role swap,
-    share back, discussion, exit ticket. A discussion without a visible clock
-    reliably eats the following phase.
+  /* ===================== SUMMONED TIMER (press T) =====================
+    Replaced every per-slide timer on 2026-09-24, per explicit instructor
+    request, with the one used in the COMPSCI 879 decks. Nothing is timed by
+    the deck any more: press T on any slide, type a length (or click a preset),
+    and it keeps counting while you move through the slides. The point is to
+    time what the room is actually doing rather than a schedule fixed when the
+    deck was built.
 
-    Click (or tap) to start, click to pause, click when finished to reset.
-    Deliberately NOT bound to a key: reveal already owns the keyboard, and a
-    space-bar timer would fire every time the deck advanced. Deliberately
-    silent: an alarm in a room of people mid-conversation is worse than a
-    colour change nobody has to react to.
-  */
-  .timer{
-    display:inline-flex; align-items:center; gap:0.5em; cursor:pointer;
-    font-family:var(--headFont); font-weight:700; user-select:none;
-    background:rgba(255,255,255,0.08); border:0.06em solid rgba(255,255,255,0.22);
-    border-radius:0.4em; padding:0.28em 0.7em; margin-top:0.5em;
-    transition:background .3s, border-color .3s, color .3s;
-  }
-  section.light .timer{ background:rgba(26,27,38,0.05); border-color:rgba(26,27,38,0.18); color:var(--textDark); }
-  /* Two timers side by side, for a phase that is really two activities.
-     wrap so a narrow projector stacks them rather than clipping the second. */
-  .timer-row{ display:flex; gap:1.4em; flex-wrap:wrap; align-items:flex-start; }
-  .timer-unit{ display:inline-block; margin-top:0.5em; }
-  /* The caption says what the time is FOR. It is separate from .hint, which the
-     timer JS overwrites with the run/pause state on every repaint. */
-  .timer-cap{
-    font-family:var(--headFont); font-size:0.52em; font-weight:700;
-    letter-spacing:0.06em; text-transform:uppercase; opacity:0.72;
-    margin:0 0 0.25em 0.15em;
-  }
-  .timer-unit .timer{ margin-top:0; }
-  .timer .clock{ font-size:1.35em; font-variant-numeric:tabular-nums; }
-  .timer .hint{ font-size:0.6em; font-weight:400; opacity:0.72; }
-  .timer.running{ border-color:var(--accent); }
-  .timer.warn{ background:rgba(224,175,104,0.20); border-color:var(--amber); color:var(--amber); }
-  .timer.warn .hint{ color:var(--amber); }
-  .timer.over{ background:rgba(247,118,142,0.22); border-color:var(--red); color:var(--red); }
-  .timer.over .hint{ color:var(--red); }
+    It lives on document.body, outside .reveal, because .slides carries
+    reveal's scaling transform and anything inside a section is hidden the
+    moment its slide leaves the screen.
 
-  /* These have to be repeated at higher specificity for light slides, which is
-     every content slide in the deck. `section.light .timer` above is (0,2,1)
-     and plain `.timer.over` is only (0,2,0), so without these the state colours
-     silently lose to the light-slide default: the class is applied, the clock
-     stops, and it stays the same grey as before. Found by reading computed
-     style on a real slide, not from the markup, which looked correct. */
-  section.light .timer.running{ border-color:var(--accent); }
-  section.light .timer.warn{ background:rgba(224,175,104,0.22); border-color:var(--amber); color:#8a5a00; }
-  section.light .timer.warn .hint{ color:#8a5a00; }
-  section.light .timer.over{ background:rgba(247,118,142,0.20); border-color:var(--red); color:#b3123c; }
-  section.light .timer.over .hint{ color:#b3123c; }
+    Two deliberate differences from 879. It halts at 0:00 in red rather than
+    counting into overtime (this course's standing rule: a growing +2:14 on a
+    projector reads as a clock still asking for time). And the presets are
+    5/10/15/30, this course's phase lengths, not 879's 2/3/5/10.
 
-  /* ===================== PHASE TIMER =====================
-    One clock that spans several consecutive slides, so a stretch of related
-    slides (the reading check and each question it surfaced) shares a single
-    countdown instead of restarting on every slide.
-
-    It lives outside .slides and is position:fixed, deliberately: .slides
-    carries reveal's scaling transform, so anything inside it that tries to
-    pin itself to a corner fights that transform and drifts at other window
-    sizes. Fixed to the viewport is immune.
-
-    Two resting places. On the slide that opens the phase it sits large and
-    centred under the content, because there it IS the subject. On every later
-    slide it shrinks into the bottom-right so the slide's own content owns the
-    space. Moving between them is one class change, and the transition below
-    does the travel. */
-  #phase-timer{
-    position:fixed; z-index:40; display:none;
-    align-items:center; gap:0.55em; cursor:pointer; user-select:none;
-    font-family:var(--headFont); font-weight:700;
-    background:rgba(26,27,38,0.06); border:2px solid rgba(26,27,38,0.20);
-    border-radius:0.45em; color:var(--textDark);
-    transition:left .45s cubic-bezier(.4,0,.2,1), top .45s cubic-bezier(.4,0,.2,1),
-               transform .45s cubic-bezier(.4,0,.2,1), opacity .3s,
-               background .3s, border-color .3s, color .3s;
-  }
-  #phase-timer.on{ display:inline-flex; }
-  #phase-timer .clock{ font-variant-numeric:tabular-nums; }
-  #phase-timer .hint{ font-weight:400; opacity:0.7; }
-  /* hero: centred along the bottom, large.
-     Pinned to the bottom edge rather than a percentage of the height: reveal
-     centres slide content vertically, so a slide with more bullets grows
-     downward and a percentage-positioned timer ends up sitting on top of the
-     last line. Measured: at 78% it overlapped the third bullet by 57px. */
-  #phase-timer.hero{
-    left:50%; top:calc(100vh - 4.6rem); transform:translate(-50%,-50%) scale(1);
-    padding:0.3em 0.85em; font-size:30px;
-  }
-  #phase-timer.hero .clock{ font-size:1.3em; }
-  #phase-timer.hero .hint{ font-size:0.55em; }
-  /* mini: parked bottom-LEFT, out of the content's way.
-     Not bottom-right: that corner already holds reveal's own navigation arrows
-     and the slide-number badge, and the timer landed on top of both. Bottom
-     left is empty on every slide in the cadence. */
-  #phase-timer.mini{
-    left:1.4rem; top:calc(100vh - 3.6rem);
-    transform:translate(0,-50%) scale(1);
-    padding:0.25em 0.6em; font-size:20px;
-  }
-  #phase-timer.mini .clock{ font-size:1.15em; }
-  #phase-timer.mini .hint{ font-size:0.5em; }
-  /* On a dark slide the base colours above are dark on dark and the clock
-     disappears entirely. Found 2026-09-15 when the Phase 1 clock was extended
-     back onto the title slide, which is the first dark slide it has ever
-     appeared on. Applied by sync() from the slide's own class, because
-     #phase-timer is position:fixed and lives outside the section, so no
-     descendant selector can reach it. warn and over already carry their own
-     colours and are legible on both, so they are left alone. */
-  #phase-timer.on-dark{
-    background:rgba(244,246,251,0.10); border-color:rgba(244,246,251,0.35);
-    color:var(--textLight,#F4F6FB);
-  }
-  #phase-timer.running{ border-color:var(--accent); }
-  #phase-timer.warn{ background:rgba(224,175,104,0.22); border-color:var(--amber); color:var(--amber); }
-  #phase-timer.over{ background:rgba(247,118,142,0.24); border-color:var(--red); color:var(--red); }
+    White panel with its own colours, so it reads on dark and light slides
+    alike; the old phase clock needed a separate on-dark variant for that. */
+  .deck-timer{ position:fixed; left:50%; transform:translateX(-50%); bottom:18px; z-index:60;
+    display:flex; align-items:center; gap:11px; background:#fff; border:2px solid var(--mid);
+    border-radius:9px; padding:10px 13px; box-shadow:0 7px 26px rgba(0,0,0,.22);
+    font-family:var(--headFont); color:var(--textDark); }
+  .deck-timer[hidden]{ display:none; }
+  .deck-timer .dt-in{ width:66px; font-family:inherit; font-size:16px; font-weight:700;
+    text-align:center; color:var(--textDark); background:#F4F6FB; border:1px solid #c9d0e3;
+    border-radius:4px; padding:7px 4px; }
+  .deck-timer .dt-in:focus{ outline:2px solid var(--mid); outline-offset:-1px; background:#fff; }
+  .deck-timer .dt-clock{ font-size:46px; font-weight:700; line-height:1; color:var(--textDark);
+    font-variant-numeric:tabular-nums; min-width:124px; text-align:center; }
+  .deck-timer.running .dt-clock{ color:#2F7D32; }
+  .deck-timer.warn .dt-clock{ color:#8a5a00; }
+  .deck-timer.over .dt-clock{ color:#b3123c; }
+  .deck-timer.over{ border-color:#b3123c; }
+  .deck-timer button{ font-family:inherit; font-weight:700; font-size:13px; text-transform:uppercase;
+    letter-spacing:.06em; border:2px solid var(--mid); background:#fff; color:var(--mid);
+    border-radius:4px; padding:8px 13px; cursor:pointer; }
+  .deck-timer button:hover{ background:var(--mid); color:#fff; }
+  .deck-timer .dt-pre{ display:flex; gap:4px; }
+  .deck-timer .dt-pre button{ padding:6px 9px; font-size:12px; border-color:#c9d0e3; color:#5a6072; }
+  .deck-timer .dt-pre button:hover{ border-color:var(--mid); background:var(--mid); color:#fff; }
+  .deck-timer .dt-x{ border-color:#c9d0e3; color:#5a6072; font-size:17px; padding:4px 10px; line-height:1; }
+  .deck-timer .dt-x:hover{ background:#5a6072; border-color:#5a6072; }
 
   .reveal .slide-number{ font-size:0.5em; }
 
@@ -293,27 +221,27 @@
 <div class="reveal">
 <div class="slides">
 
-<section data-phase-timer="30" data-phase-timer-start>
+<section>
 <div class="bars"><div></div><div></div><div></div></div>
 <h1>UNIT 03: <span class="accent">Serving HTML and Templates</span></h1>
 <p class="subtitle">A route can finally send something a person actually wants to look at</p>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<section class="light" data-background-color="#F4F6FB">
 <!-- *** THIS IS THE ONLY SLIDE WITH SCHEDULE INFORMATION ON IT ***
      Patch here when the calendar shifts. Weekdays only, never dates. -->
 <h2>On Deck</h2>
 <div class="options"><div class="opt"><strong>Today</strong><br><span class="small">Sprint 0 due, 11:59 PM</span></div><div class="opt"><strong>Thursday</strong><br><span class="small">Unit 04 is self-study, no lecture, guest visit that day</span></div><div class="opt"><strong>Friday</strong><br><span class="small">Lab 02 due, branching and the pull request</span></div><div class="opt"><strong>Opens</strong><br><span class="small">Homework 1, Friday 9:00 AM</span></div></div>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<section class="light" data-background-color="#F4F6FB">
 <h2>Today's 75 Minutes</h2>
 <div class="phase-grid"><div class="phase-card"><div class="num">1</div><div class="time">~30 min</div><div class="label">Settle in, recap,<br>reading check</div></div><div class="phase-card"><div class="num">2</div><div class="time">~30 min</div><div class="label">Build it<br>in 2s and 3s</div></div><div class="phase-card"><div class="num">3</div><div class="time">~10 min</div><div class="label">Discussion,<br>on what you just built</div></div><div class="phase-card"><div class="num">4</div><div class="time">~5 min</div><div class="label">Exit ticket<br>and wrap</div></div></div>
 
 <p class="muted small" style="margin-top:1em">Same shape every lecture.</p>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<section class="light" data-background-color="#F4F6FB">
 <h2>From Programs to People</h2>
 <p class="subtitle">Units 01 and 02 served programs. This one serves a person with a browser.</p><div class="left"><p><strong class="accent">Text and JSON are for machines.</strong></p><p><strong class="accent">HTML carries meaning, not just looks.</strong></p><p><strong class="accent">A file is the same for everyone. Data is not.</strong></p></div><pre><code class="language-javascript" data-trim>
 res.send(&#x27;...&#x27;)      // a string
@@ -322,12 +250,12 @@ res.render(view, data)   // a file plus data
 </code></pre>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<section class="light" data-background-color="#F4F6FB">
 <h2>What Unit 03 Covered</h2>
 <div class="left recap"><p><strong class="accent">From text to HTML</strong></p><p><strong class="accent">Static files</strong></p><p><strong class="accent">Semantic HTML</strong></p><p><strong class="accent">Why templates?</strong></p><p><strong class="accent">Setting up EJS</strong></p><p><strong class="accent">Template syntax</strong></p><p><strong class="accent">Partials</strong></p></div>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<section class="light" data-background-color="#F4F6FB">
 <h2>From text to HTML</h2>
 <p class="subtitle">A real file off disk, not a string that happens to arrive as text/html.</p><pre><code class="language-javascript" data-trim>
 app.get(&#x27;/&#x27;, (req, res) =&gt; {
@@ -337,26 +265,26 @@ app.get(&#x27;/&#x27;, (req, res) =&gt; {
 </code></pre>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<section class="light" data-background-color="#F4F6FB">
 <h2>Static files</h2>
 <p class="subtitle">One line serves a whole directory, so you stop writing a route per file.</p><pre><code class="language-javascript" data-trim>
 app.use(express.static(&#x27;public&#x27;));
 </code></pre><p class="small">public/style.css is served at /style.css. public/index.html answers both /index.html and /.</p>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<section class="light" data-background-color="#F4F6FB">
 <h2>Semantic HTML</h2>
 <p class="subtitle">Tags carry meaning. Use the one that says what the thing is.</p><pre><code class="language-html" data-trim>
 &lt;header&gt; &lt;nav&gt; &lt;main&gt; &lt;article&gt; &lt;footer&gt;
 </code></pre><p class="small">These change nothing about how the page looks by default. That is the point: the meaning is for the browser, assistive technology and search, not for the eye.</p>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<section class="light" data-background-color="#F4F6FB">
 <h2>Why templates?</h2>
 <p class="subtitle">sendFile sends a fixed file. Every visitor gets the same page.</p><div class="left"><p>That is exactly right for a stylesheet or a logo, and exactly wrong for a list of entries that changes every time someone adds one.</p><p><strong class="accent">A template is HTML with placeholders.</strong> The file on disk never changes. The output changes with every request.</p></div>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<section class="light" data-background-color="#F4F6FB">
 <h2>Setting up EJS</h2>
 <p class="subtitle">Two lines of configuration, then render by name.</p><pre><code class="language-javascript" data-trim>
 app.set(&#x27;view engine&#x27;, &#x27;ejs&#x27;);
@@ -366,7 +294,7 @@ res.render(&#x27;entries&#x27;, { title, entries });
 </code></pre>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<section class="light" data-background-color="#F4F6FB">
 <h2>Template syntax</h2>
 <pre><code class="language-html" data-trim>
 &lt;%= value %&gt;   prints it, HTML-escaped
@@ -379,19 +307,19 @@ title = &#x27;&lt;b&gt;Notes&lt;/b&gt;&#x27;
 </code></pre>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<section class="light" data-background-color="#F4F6FB">
 <h2>Partials</h2>
 <p class="subtitle">A fragment you include, so the nav lives in one file instead of five.</p><pre><code class="language-html" data-trim>
 &lt;%- include(&#x27;partials/header&#x27;) %&gt;
 </code></pre><p class="small">Raw output, deliberately. The partial is markup you wrote, not input from a user.</p>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<section class="light" data-background-color="#F4F6FB">
 <h2>What the Reading Check Showed</h2>
 <ul><li><strong>Q1, render versus sendFile: 46 of 54.</strong> The six who missed it picked “sets Content-Type to text/html”, which sendFile does too</li><li><strong>Q2, which tag runs a loop: 42 of 54.</strong> Nine picked <code>&lt;%=</code>, which would print what the loop returns instead of running it</li><li><strong>The runaway theme in your own words:</strong> which tag is which, and when you would ever want the raw one</li><li><strong>Eleven of you</strong> asked to see render and a forEach loop done live. That is the activity</li><li><strong>And some of you caught a real bug in the Real World section.</strong> It is the page, not you</li></ul>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<section class="light" data-background-color="#F4F6FB">
 <h2>How express.static Picks a File</h2>
 <p class="subtitle">Three of you asked how Express knows which file to send.</p><pre><code class="language-javascript" data-trim>
 app.use(express.static(&#x27;public&#x27;));
@@ -402,7 +330,7 @@ GET /            -&gt;  public/index.html
 </code></pre><p class="small left">It maps the URL path straight onto a filename inside that folder. No file matches? Express moves on and your routes run.</p>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<section class="light" data-background-color="#F4F6FB">
 <h2>You Found a Real Bug</h2>
 <p class="subtitle">The Real World section shows a template and then never uses it.</p><pre><code class="language-javascript" data-trim>
 // it shows views/entries.ejs ... then ignores it
@@ -412,7 +340,7 @@ res.render(&#x27;layout&#x27;, { title, body: inner, entries });
 </code></pre><p class="small left">Two things wrong: the template is dead, and <code>${e.title}</code> is unescaped, the exact hazard we just covered. <code>entries</code> is passed and never used.</p>
 </section>
 
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<section class="light" data-background-color="#F4F6FB">
 <h2>Layout, Partial, or Page?</h2>
 <p class="subtitle">Several of you lost track of which .ejs file does what.</p><div class="left"><p><strong class="accent">Page</strong> is what the route names: <code>res.render('entries')</code> finds <code>views/entries.ejs</code>.</p><p><strong class="accent">Partial</strong> is a fragment pulled into another file with <code>include</code>. The header is one.</p><p><strong class="accent">Layout</strong> is just a page that happens to wrap the others. EJS has no built-in layout; it is a convention, not a feature.</p></div>
 </section>
@@ -455,41 +383,24 @@ res.render(&#x27;layout&#x27;, { title: &#x27;Entries&#x27;, body: inner });
 <p class="small">The full brief and starter code are in Canvas, under this unit.
 Nothing is submitted.</p>
 
-<div class="timer-unit"><div class="timer-cap">Build it, with your group</div><div class="timer" data-minutes="15"><span class="clock">15:00</span><span class="hint"></span></div></div>
-</section>
-
-<section>
-<h2>Swap Roles</h2>
-<p class="subtitle">Whoever has not typed yet takes the keyboard.</p>
-<p class="small">This slide is the signal. If you swapped earlier on your own,
-swap back now so everyone is on the same clock.</p>
-
-<div class="timer-unit"><div class="timer-cap">Keep building, second half</div><div class="timer" data-minutes="15"><span class="clock">15:00</span><span class="hint"></span></div></div>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
 <h2>Compare and Share Back</h2>
 <p>Compare your empty-state answer with a neighbouring group. Ask them where in a real application a list actually turns up empty, and who sees it first.</p>
-<p class="small">Now, not before. This is its own five minutes, on its own
-timer.</p>
-<div class="timer-unit"><div class="timer-cap">Share back what you built</div><div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint"></span></div></div>
+<p class="small">Now, not before. About five minutes.</p>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
 <h2>Discussion</h2>
 <ul><li>Sprint 1 says plain text is fine for now, styled templates come later. Even so: is there one page in your future project where a real template already saves you real work this week?</li><li>What is the actual difference between &lt;%= %&gt; and &lt;% %&gt;, in your own words, not the unit's?</li><li>You just decided what an empty list looks like. Was that decision about code, or about the person reading the page?</li></ul>
 
-<div class="timer-row">
-<div class="timer-unit"><div class="timer-cap">Compare with the groups next to you</div><div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint"></span></div></div>
-<div class="timer-unit"><div class="timer-cap">Open discussion, whole room</div><div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint"></span></div></div>
-</div>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
 <h2><span class="accent">Sprint 0</span> due tonight, <span class="accent">Sprint 1</span> opens</h2>
 <p class="subtitle">One closes, the next begins, both today.</p>
 <ul><li>Sprint 0 is due <strong>tonight at 11:59</strong>. Repository, roster, working agreement, domain paragraph.</li><li>Sprint 1 opens today and is due a week from today. It asks for a running Express server with two routes in your own domain.</li><li>If your team has not agreed on a domain yet, that is the blocker, not the code.</li></ul>
-<div class="timer-unit"><div class="timer-cap">Sprint questions</div><div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint"></span></div></div>
 </section>
 
 <section>
@@ -504,7 +415,6 @@ excused absence.</p>
 <p class="accent" style="font-size:1.3em;margin:0.15em 0">Word: <span
 class="wordblank" contenteditable="true" spellcheck="false"
 data-placeholder="click to type"></span></p>
-<div class="timer-unit"><div class="timer-cap">Exit ticket, then wrap</div><div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint"></span></div></div>
 </section>
 
 <section>
@@ -525,54 +435,6 @@ data-placeholder="click to type"></span></p>
     plugins: [ RevealNotes, RevealHighlight ]
   });
 
-  /* Timer wiring. Each .timer carries data-minutes. State lives on the element,
-     so several timers on different slides never interfere, and returning to a
-     slide leaves its timer exactly as it was left. */
-  document.querySelectorAll('.timer').forEach(function(el){
-    var total = Math.round(parseFloat(el.dataset.minutes) * 60);
-    var left = total, id = null, state = 'idle';
-    var clock = el.querySelector('.clock'), hint = el.querySelector('.hint');
-
-    function fmt(s){
-      return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
-    }
-    function paint(){
-      clock.textContent = fmt(Math.max(left, 0));
-      el.classList.toggle('warn', left <= total*0.25 && left > 0);
-      el.classList.toggle('over', left <= 0);
-      el.classList.toggle('running', state === 'running');
-      hint.textContent = state === 'done'    ? 'time is up, dbl click resets'
-                       : state === 'running' ? 'click to pause'
-                       : state === 'paused'  ? 'paused, double click resets'
-                       : 'click to start';
-    }
-    /* Halt at 0:00 rather than counting up. An earlier version ran into
-       overtime so the overrun was visible, but on a projector a growing +2:14
-       reads as a timer that is still asking for more time, when the intent is
-       that the activity is over. Red and frozen says done. */
-    function tick(){
-      left--;
-      if (left <= 0){ left = 0; stop(); state = 'done'; }
-      paint();
-    }
-    function stop(){ if (id){ clearInterval(id); id = null; } }
-
-    /* Single click toggles run/pause. Double click resets.
-       Keep these two jobs separate: an earlier version overloaded one click to
-       also mean "reset", which made a finished timer impossible to reset at all,
-       because once it was paused no branch could reach the reset. */
-    el.addEventListener('click', function(){
-      if (state === 'done') return;   /* only a reset gets you out of done */
-      if (state === 'running'){ stop(); state = 'paused'; }
-      else { stop(); id = setInterval(tick, 1000); state = 'running'; }
-      paint();
-    });
-    el.addEventListener('dblclick', function(){
-      stop(); left = total; state = 'idle'; paint();
-    });
-    paint();
-  });
-
   /* Editable word field. Keyed by the deck's own title, so each unit's word
      persists independently in the same browser and reloading mid-class does
      not lose what was typed. Enter blurs rather than inserting a newline,
@@ -589,85 +451,112 @@ data-placeholder="click to type"></span></p>
     });
   });
 
-  /* ===================== PHASE TIMER =====================
-     One clock across a run of consecutive slides, so the reading-check
-     discussion is timed as a whole rather than restarting on each question.
+  /* ===================== SUMMONED TIMER (press T) =====================
+     Ported from the COMPSCI 879 deck chrome on 2026-09-24. T toggles the panel
+     on any slide; type a length and press Enter, or click a preset. It keeps
+     counting across slide changes because it lives on document.body.
 
-     A section opts in with data-phase-timer="<minutes>". The slide that opens
-     the run also carries data-phase-timer-start, which is what makes it sit
-     large and centred there and small in the corner afterwards.
+     "5" means five minutes, because that is what you say out loud. "1:30" and
+     "45s" are there for the times you mean something shorter.
 
-     Deliberately ONE element reused, not one per slide. The countdown is then
-     continuous by construction: there is no state to hand between slides, and
-     no way for two copies to disagree about how much time is left. Moving it
-     is a class swap; the CSS transition does the travel and the resize. */
+     Halts at 0:00 in red, never counts into overtime. Amber for the last 25%.
+     Silent by design: an alarm in a room mid-conversation is worse than a
+     colour change nobody has to react to. */
   (function(){
-    var host = document.querySelector('.reveal');
-    if (!host) return;
-    var el = document.createElement('div');
-    el.id = 'phase-timer';
-    el.innerHTML = '<span class="clock"></span><span class="hint"></span>';
-    host.appendChild(el);
+    var box = document.createElement('div');
+    box.className = 'deck-timer'; box.hidden = true;
+    box.innerHTML =
+        '<input class="dt-in" type="text" inputmode="decimal" placeholder="5" '
+      + 'aria-label="Minutes, or m:ss" title="Minutes, or m:ss">'
+      + '<span class="dt-pre"></span>'
+      + '<span class="dt-clock" role="timer" aria-live="off">0:00</span>'
+      + '<button class="dt-go" type="button">Start</button>'
+      + '<button class="dt-rst" type="button">Reset</button>'
+      + '<button class="dt-x" type="button" title="Hide (T)" aria-label="Hide timer">&times;</button>';
+    document.body.appendChild(box);
 
-    var clock = el.querySelector('.clock'), hint = el.querySelector('.hint');
-    var total = 0, left = 0, id = null, state = 'idle';
+    var input = box.querySelector('.dt-in'), face = box.querySelector('.dt-clock'),
+        go = box.querySelector('.dt-go'), rst = box.querySelector('.dt-rst'),
+        pre = box.querySelector('.dt-pre');
+    var total = 0, left = 0, tick = null, running = false;
 
-    function fmt(s){
-      return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+    function fmt(s){ return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
+    function parse(v){
+      v = String(v || '').trim();
+      var m = v.match(/^(\d+):([0-5]?\d)$/);        if (m) return (+m[1])*60 + (+m[2]);
+      m = v.match(/^(\d+(?:\.\d+)?)\s*m(?:in)?$/i); if (m) return Math.round(parseFloat(m[1])*60);
+      m = v.match(/^(\d+)\s*s(?:ec)?$/i);           if (m) return +m[1];
+      if (/^\d+(\.\d+)?$/.test(v)) return Math.round(parseFloat(v)*60);
+      return 0;
     }
     function paint(){
-      clock.textContent = fmt(Math.max(left, 0));
-      el.classList.toggle('warn', left <= total*0.25 && left > 0);
-      el.classList.toggle('over', left <= 0);
-      el.classList.toggle('running', state === 'running');
-      hint.textContent = state === 'done'    ? 'time is up, dbl click resets'
-                       : state === 'running' ? 'click to pause'
-                       : state === 'paused'  ? 'paused, dbl click resets'
-                       : 'click to start';
+      face.textContent = fmt(left);
+      box.classList.toggle('running', running);
+      box.classList.toggle('warn', total > 0 && left > 0 && left <= total*0.25);
+      box.classList.toggle('over', total > 0 && left <= 0);
+      go.textContent = running ? 'Pause' : (left > 0 && left !== total ? 'Resume' : 'Start');
     }
-    function stop(){ if (id){ clearInterval(id); id = null; } }
-    /* Halts at 0:00 in red, same as the inline .timer elements. */
-    function tick(){
-      left--;
-      if (left <= 0){ left = 0; stop(); state = 'done'; }
-      paint();
-    }
-
-    el.addEventListener('click', function(){
-      if (state === 'done') return;
-      if (state === 'running'){ stop(); state = 'paused'; }
-      else { stop(); id = setInterval(tick, 1000); state = 'running'; }
-      paint();
-    });
-    el.addEventListener('dblclick', function(){
-      stop(); state = 'idle'; left = total; paint();
-    });
-
-    function sync(){
-      var s = Reveal.getCurrentSlide();
-      var mins = s && s.dataset ? s.dataset.phaseTimer : null;
-      if (!mins){ el.classList.remove('on','hero','mini'); return; }
-
-      var t = Math.round(parseFloat(mins) * 60);
-      /* Only (re)arm on the slide that STARTS the phase, and only while it has
-         not been started yet. Without the state check, stepping back to the
-         first slide mid-discussion would silently wipe the running clock. */
-      if (s.hasAttribute('data-phase-timer-start') && state === 'idle'){
-        total = t; left = t;
-      } else if (!total){
-        total = t; left = t;
+    function stop(){ running = false; clearInterval(tick); tick = null; paint(); }
+    function run(){
+      if (running) return;
+      if (left <= 0){                  /* Start with nothing left reads the box */
+        total = parse(input.value); left = total;
+        if (!total){ input.focus(); input.select(); return; }
       }
-      el.classList.add('on');
-      /* Light slides carry class "light"; anything else is a dark section. */
-      el.classList.toggle('on-dark', !s.classList.contains('light'));
-      var hero = s.hasAttribute('data-phase-timer-start');
-      el.classList.toggle('hero', hero);
-      el.classList.toggle('mini', !hero);
+      running = true;
+      tick = setInterval(function(){
+        left--;
+        if (left <= 0){ left = 0; stop(); return; }   /* halt, do not run over */
+        paint();
+      }, 1000);
       paint();
     }
+    function set(secs, andRun){
+      stop(); total = secs; left = secs; input.value = Math.round(secs/60*100)/100; paint();
+      if (andRun) run();
+    }
+    function show(yes){
+      box.hidden = !yes;
+      if (yes){ input.focus(); input.select(); }
+    }
 
-    Reveal.on('ready', sync);
-    Reveal.on('slidechanged', sync);
+    [5, 10, 15, 30].forEach(function(n){
+      var b = document.createElement('button');
+      b.type = 'button'; b.textContent = n; b.title = n + ' minutes';
+      b.onclick = function(){ set(n*60, true); };
+      pre.appendChild(b);
+    });
+    go.onclick = function(){ running ? stop() : run(); };
+    rst.onclick = function(){ stop(); left = total; paint(); };
+    box.querySelector('.dt-x').onclick = function(){ show(false); };
+
+    /* Enter starts the length just typed. Reveal ignores keys aimed at an
+       input, so the digits never reach the deck's navigation. */
+    input.addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){ e.preventDefault(); var s = parse(input.value); if (s) set(s, true); }
+      else if (e.key === 'Escape'){ e.preventDefault(); input.blur(); }
+    });
+
+    function typing(){
+      var a = document.activeElement;
+      return a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable);
+    }
+    /* T toggles. Opening puts the cursor in the length box, so without the
+       first test the next T would count as typing and the panel could never be
+       closed the way it was opened. The exit-ticket word blank is
+       contenteditable, so typing a T into it is left alone. */
+    document.addEventListener('keydown', function(e){
+      if (e.key !== 't' && e.key !== 'T') return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (document.activeElement === input){
+        e.preventDefault(); e.stopPropagation(); input.blur(); show(false); return;
+      }
+      if (typing()) return;
+      e.preventDefault(); e.stopPropagation();
+      show(box.hidden);
+    }, true);
+
+    paint();
   })();
 </script>
 </body>

@@ -156,110 +156,49 @@
     max-width:34em; }
   .callout.dense p{ margin-bottom:0.4em; line-height:1.3; }
 
-  /* ===================== TIMER =====================
-    Every timed thing in the room gets one: reading check, activity, role swap,
-    share back, discussion, exit ticket. A discussion without a visible clock
-    reliably eats the following phase.
+  /* ===================== SUMMONED TIMER (press T) =====================
+    Replaced every per-slide timer on 2026-09-24, per explicit instructor
+    request, with the one used in the COMPSCI 879 decks. Nothing is timed by
+    the deck any more: press T on any slide, type a length (or click a preset),
+    and it keeps counting while you move through the slides. The point is to
+    time what the room is actually doing rather than a schedule fixed when the
+    deck was built.
 
-    Click (or tap) to start, click to pause, click when finished to reset.
-    Deliberately NOT bound to a key: reveal already owns the keyboard, and a
-    space-bar timer would fire every time the deck advanced. Deliberately
-    silent: an alarm in a room of people mid-conversation is worse than a
-    colour change nobody has to react to.
-  */
-  .timer{
-    display:inline-flex; align-items:center; gap:0.5em; cursor:pointer;
-    font-family:var(--headFont); font-weight:700; user-select:none;
-    background:rgba(255,255,255,0.08); border:0.06em solid rgba(255,255,255,0.22);
-    border-radius:0.4em; padding:0.28em 0.7em; margin-top:0.5em;
-    transition:background .3s, border-color .3s, color .3s;
-  }
-  section.light .timer{ background:rgba(26,27,38,0.05); border-color:rgba(26,27,38,0.18); color:var(--textDark); }
-  /* Two timers side by side, for a phase that is really two activities.
-     wrap so a narrow projector stacks them rather than clipping the second. */
-  .timer-row{ display:flex; gap:1.4em; flex-wrap:wrap; align-items:flex-start; }
-  .timer-unit{ display:inline-block; margin-top:0.5em; }
-  /* The caption says what the time is FOR. It is separate from .hint, which the
-     timer JS overwrites with the run/pause state on every repaint. */
-  .timer-cap{
-    font-family:var(--headFont); font-size:0.52em; font-weight:700;
-    letter-spacing:0.06em; text-transform:uppercase; opacity:0.72;
-    margin:0 0 0.25em 0.15em;
-  }
-  .timer-unit .timer{ margin-top:0; }
-  .timer .clock{ font-size:1.35em; font-variant-numeric:tabular-nums; }
-  .timer .hint{ font-size:0.6em; font-weight:400; opacity:0.72; }
-  .timer.running{ border-color:var(--accent); }
-  .timer.warn{ background:rgba(224,175,104,0.20); border-color:var(--amber); color:var(--amber); }
-  .timer.warn .hint{ color:var(--amber); }
-  .timer.over{ background:rgba(247,118,142,0.22); border-color:var(--red); color:var(--red); }
-  .timer.over .hint{ color:var(--red); }
+    It lives on document.body, outside .reveal, because .slides carries
+    reveal's scaling transform and anything inside a section is hidden the
+    moment its slide leaves the screen.
 
-  /* These have to be repeated at higher specificity for light slides, which is
-     every content slide in the deck. `section.light .timer` above is (0,2,1)
-     and plain `.timer.over` is only (0,2,0), so without these the state colours
-     silently lose to the light-slide default: the class is applied, the clock
-     stops, and it stays the same grey as before. Found by reading computed
-     style on a real slide, not from the markup, which looked correct. */
-  section.light .timer.running{ border-color:var(--accent); }
-  section.light .timer.warn{ background:rgba(224,175,104,0.22); border-color:var(--amber); color:#8a5a00; }
-  section.light .timer.warn .hint{ color:#8a5a00; }
-  section.light .timer.over{ background:rgba(247,118,142,0.20); border-color:var(--red); color:#b3123c; }
-  section.light .timer.over .hint{ color:#b3123c; }
+    Two deliberate differences from 879. It halts at 0:00 in red rather than
+    counting into overtime (this course's standing rule: a growing +2:14 on a
+    projector reads as a clock still asking for time). And the presets are
+    5/10/15/30, this course's phase lengths, not 879's 2/3/5/10.
 
-  /* ===================== PHASE TIMER =====================
-    One clock that spans several consecutive slides, so a stretch of related
-    slides (the reading check and each question it surfaced) shares a single
-    countdown instead of restarting on every slide.
-
-    It lives outside .slides and is position:fixed, deliberately: .slides
-    carries reveal's scaling transform, so anything inside it that tries to
-    pin itself to a corner fights that transform and drifts at other window
-    sizes. Fixed to the viewport is immune.
-
-    Two resting places. On the slide that opens the phase it sits large and
-    centred under the content, because there it IS the subject. On every later
-    slide it shrinks into the bottom-right so the slide's own content owns the
-    space. Moving between them is one class change, and the transition below
-    does the travel. */
-  #phase-timer{
-    position:fixed; z-index:40; display:none;
-    align-items:center; gap:0.55em; cursor:pointer; user-select:none;
-    font-family:var(--headFont); font-weight:700;
-    background:rgba(26,27,38,0.06); border:2px solid rgba(26,27,38,0.20);
-    border-radius:0.45em; color:var(--textDark);
-    transition:left .45s cubic-bezier(.4,0,.2,1), top .45s cubic-bezier(.4,0,.2,1),
-               transform .45s cubic-bezier(.4,0,.2,1), opacity .3s,
-               background .3s, border-color .3s, color .3s;
-  }
-  #phase-timer.on{ display:inline-flex; }
-  #phase-timer .clock{ font-variant-numeric:tabular-nums; }
-  #phase-timer .hint{ font-weight:400; opacity:0.7; }
-  /* hero: centred along the bottom, large.
-     Pinned to the bottom edge rather than a percentage of the height: reveal
-     centres slide content vertically, so a slide with more bullets grows
-     downward and a percentage-positioned timer ends up sitting on top of the
-     last line. Measured: at 78% it overlapped the third bullet by 57px. */
-  #phase-timer.hero{
-    left:50%; top:calc(100vh - 4.6rem); transform:translate(-50%,-50%) scale(1);
-    padding:0.3em 0.85em; font-size:30px;
-  }
-  #phase-timer.hero .clock{ font-size:1.3em; }
-  #phase-timer.hero .hint{ font-size:0.55em; }
-  /* mini: parked bottom-LEFT, out of the content's way.
-     Not bottom-right: that corner already holds reveal's own navigation arrows
-     and the slide-number badge, and the timer landed on top of both. Bottom
-     left is empty on every slide in the cadence. */
-  #phase-timer.mini{
-    left:1.4rem; top:calc(100vh - 3.6rem);
-    transform:translate(0,-50%) scale(1);
-    padding:0.25em 0.6em; font-size:20px;
-  }
-  #phase-timer.mini .clock{ font-size:1.15em; }
-  #phase-timer.mini .hint{ font-size:0.5em; }
-  #phase-timer.running{ border-color:var(--accent); }
-  #phase-timer.warn{ background:rgba(224,175,104,0.22); border-color:var(--amber); color:var(--amber); }
-  #phase-timer.over{ background:rgba(247,118,142,0.24); border-color:var(--red); color:var(--red); }
+    White panel with its own colours, so it reads on dark and light slides
+    alike; the old phase clock needed a separate on-dark variant for that. */
+  .deck-timer{ position:fixed; left:50%; transform:translateX(-50%); bottom:18px; z-index:60;
+    display:flex; align-items:center; gap:11px; background:#fff; border:2px solid var(--mid);
+    border-radius:9px; padding:10px 13px; box-shadow:0 7px 26px rgba(0,0,0,.22);
+    font-family:var(--headFont); color:var(--textDark); }
+  .deck-timer[hidden]{ display:none; }
+  .deck-timer .dt-in{ width:66px; font-family:inherit; font-size:16px; font-weight:700;
+    text-align:center; color:var(--textDark); background:#F4F6FB; border:1px solid #c9d0e3;
+    border-radius:4px; padding:7px 4px; }
+  .deck-timer .dt-in:focus{ outline:2px solid var(--mid); outline-offset:-1px; background:#fff; }
+  .deck-timer .dt-clock{ font-size:46px; font-weight:700; line-height:1; color:var(--textDark);
+    font-variant-numeric:tabular-nums; min-width:124px; text-align:center; }
+  .deck-timer.running .dt-clock{ color:#2F7D32; }
+  .deck-timer.warn .dt-clock{ color:#8a5a00; }
+  .deck-timer.over .dt-clock{ color:#b3123c; }
+  .deck-timer.over{ border-color:#b3123c; }
+  .deck-timer button{ font-family:inherit; font-weight:700; font-size:13px; text-transform:uppercase;
+    letter-spacing:.06em; border:2px solid var(--mid); background:#fff; color:var(--mid);
+    border-radius:4px; padding:8px 13px; cursor:pointer; }
+  .deck-timer button:hover{ background:var(--mid); color:#fff; }
+  .deck-timer .dt-pre{ display:flex; gap:4px; }
+  .deck-timer .dt-pre button{ padding:6px 9px; font-size:12px; border-color:#c9d0e3; color:#5a6072; }
+  .deck-timer .dt-pre button:hover{ border-color:var(--mid); background:var(--mid); color:#fff; }
+  .deck-timer .dt-x{ border-color:#c9d0e3; color:#5a6072; font-size:17px; padding:4px 10px; line-height:1; }
+  .deck-timer .dt-x:hover{ background:#5a6072; border-color:#5a6072; }
 
   .reveal .slide-number{ font-size:0.5em; }
 
@@ -560,7 +499,6 @@ dropped.</p>
 <p class="accent" style="font-size:1.15em;margin:0.1em 0">Word: <span
 class="wordblank" contenteditable="true" spellcheck="false"
 data-placeholder="click to type"></span></p>
-<div class="timer-unit"><div class="timer-cap">Fill in the exit ticket</div><div class="timer" data-minutes="5"><span class="clock">5:00</span><span class="hint"></span></div></div>
 <aside class="notes">THE WORD. Click the blank on this slide and type it in. It saves as you go and survives a reload.
 
 - PUT IT UP IN THE LAST FIFTEEN MINUTES, not at the start. The ticket window opens near the end of your section for exactly this reason.
@@ -591,54 +529,6 @@ Anyone not going to finish: the lab is due tonight, so they have the evening. Ma
     plugins: [ RevealNotes, RevealHighlight ]
   });
 
-  /* Timer wiring. Each .timer carries data-minutes. State lives on the element,
-     so several timers on different slides never interfere, and returning to a
-     slide leaves its timer exactly as it was left. */
-  document.querySelectorAll('.timer').forEach(function(el){
-    var total = Math.round(parseFloat(el.dataset.minutes) * 60);
-    var left = total, id = null, state = 'idle';
-    var clock = el.querySelector('.clock'), hint = el.querySelector('.hint');
-
-    function fmt(s){
-      return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
-    }
-    function paint(){
-      clock.textContent = fmt(Math.max(left, 0));
-      el.classList.toggle('warn', left <= total*0.25 && left > 0);
-      el.classList.toggle('over', left <= 0);
-      el.classList.toggle('running', state === 'running');
-      hint.textContent = state === 'done'    ? 'time is up, dbl click resets'
-                       : state === 'running' ? 'click to pause'
-                       : state === 'paused'  ? 'paused, double click resets'
-                       : 'click to start';
-    }
-    /* Halt at 0:00 rather than counting up. An earlier version ran into
-       overtime so the overrun was visible, but on a projector a growing +2:14
-       reads as a timer that is still asking for more time, when the intent is
-       that the activity is over. Red and frozen says done. */
-    function tick(){
-      left--;
-      if (left <= 0){ left = 0; stop(); state = 'done'; }
-      paint();
-    }
-    function stop(){ if (id){ clearInterval(id); id = null; } }
-
-    /* Single click toggles run/pause. Double click resets.
-       Keep these two jobs separate: an earlier version overloaded one click to
-       also mean "reset", which made a finished timer impossible to reset at all,
-       because once it was paused no branch could reach the reset. */
-    el.addEventListener('click', function(){
-      if (state === 'done') return;   /* only a reset gets you out of done */
-      if (state === 'running'){ stop(); state = 'paused'; }
-      else { stop(); id = setInterval(tick, 1000); state = 'running'; }
-      paint();
-    });
-    el.addEventListener('dblclick', function(){
-      stop(); left = total; state = 'idle'; paint();
-    });
-    paint();
-  });
-
   /* Editable word field. Keyed by the deck's own title, so each unit's word
      persists independently in the same browser and reloading mid-class does
      not lose what was typed. Enter blurs rather than inserting a newline,
@@ -655,83 +545,112 @@ Anyone not going to finish: the lab is due tonight, so they have the evening. Ma
     });
   });
 
-  /* ===================== PHASE TIMER =====================
-     One clock across a run of consecutive slides, so the reading-check
-     discussion is timed as a whole rather than restarting on each question.
+  /* ===================== SUMMONED TIMER (press T) =====================
+     Ported from the COMPSCI 879 deck chrome on 2026-09-24. T toggles the panel
+     on any slide; type a length and press Enter, or click a preset. It keeps
+     counting across slide changes because it lives on document.body.
 
-     A section opts in with data-phase-timer="<minutes>". The slide that opens
-     the run also carries data-phase-timer-start, which is what makes it sit
-     large and centred there and small in the corner afterwards.
+     "5" means five minutes, because that is what you say out loud. "1:30" and
+     "45s" are there for the times you mean something shorter.
 
-     Deliberately ONE element reused, not one per slide. The countdown is then
-     continuous by construction: there is no state to hand between slides, and
-     no way for two copies to disagree about how much time is left. Moving it
-     is a class swap; the CSS transition does the travel and the resize. */
+     Halts at 0:00 in red, never counts into overtime. Amber for the last 25%.
+     Silent by design: an alarm in a room mid-conversation is worse than a
+     colour change nobody has to react to. */
   (function(){
-    var host = document.querySelector('.reveal');
-    if (!host) return;
-    var el = document.createElement('div');
-    el.id = 'phase-timer';
-    el.innerHTML = '<span class="clock"></span><span class="hint"></span>';
-    host.appendChild(el);
+    var box = document.createElement('div');
+    box.className = 'deck-timer'; box.hidden = true;
+    box.innerHTML =
+        '<input class="dt-in" type="text" inputmode="decimal" placeholder="5" '
+      + 'aria-label="Minutes, or m:ss" title="Minutes, or m:ss">'
+      + '<span class="dt-pre"></span>'
+      + '<span class="dt-clock" role="timer" aria-live="off">0:00</span>'
+      + '<button class="dt-go" type="button">Start</button>'
+      + '<button class="dt-rst" type="button">Reset</button>'
+      + '<button class="dt-x" type="button" title="Hide (T)" aria-label="Hide timer">&times;</button>';
+    document.body.appendChild(box);
 
-    var clock = el.querySelector('.clock'), hint = el.querySelector('.hint');
-    var total = 0, left = 0, id = null, state = 'idle';
+    var input = box.querySelector('.dt-in'), face = box.querySelector('.dt-clock'),
+        go = box.querySelector('.dt-go'), rst = box.querySelector('.dt-rst'),
+        pre = box.querySelector('.dt-pre');
+    var total = 0, left = 0, tick = null, running = false;
 
-    function fmt(s){
-      return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
+    function fmt(s){ return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
+    function parse(v){
+      v = String(v || '').trim();
+      var m = v.match(/^(\d+):([0-5]?\d)$/);        if (m) return (+m[1])*60 + (+m[2]);
+      m = v.match(/^(\d+(?:\.\d+)?)\s*m(?:in)?$/i); if (m) return Math.round(parseFloat(m[1])*60);
+      m = v.match(/^(\d+)\s*s(?:ec)?$/i);           if (m) return +m[1];
+      if (/^\d+(\.\d+)?$/.test(v)) return Math.round(parseFloat(v)*60);
+      return 0;
     }
     function paint(){
-      clock.textContent = fmt(Math.max(left, 0));
-      el.classList.toggle('warn', left <= total*0.25 && left > 0);
-      el.classList.toggle('over', left <= 0);
-      el.classList.toggle('running', state === 'running');
-      hint.textContent = state === 'done'    ? 'time is up, dbl click resets'
-                       : state === 'running' ? 'click to pause'
-                       : state === 'paused'  ? 'paused, dbl click resets'
-                       : 'click to start';
+      face.textContent = fmt(left);
+      box.classList.toggle('running', running);
+      box.classList.toggle('warn', total > 0 && left > 0 && left <= total*0.25);
+      box.classList.toggle('over', total > 0 && left <= 0);
+      go.textContent = running ? 'Pause' : (left > 0 && left !== total ? 'Resume' : 'Start');
     }
-    function stop(){ if (id){ clearInterval(id); id = null; } }
-    /* Halts at 0:00 in red, same as the inline .timer elements. */
-    function tick(){
-      left--;
-      if (left <= 0){ left = 0; stop(); state = 'done'; }
-      paint();
-    }
-
-    el.addEventListener('click', function(){
-      if (state === 'done') return;
-      if (state === 'running'){ stop(); state = 'paused'; }
-      else { stop(); id = setInterval(tick, 1000); state = 'running'; }
-      paint();
-    });
-    el.addEventListener('dblclick', function(){
-      stop(); state = 'idle'; left = total; paint();
-    });
-
-    function sync(){
-      var s = Reveal.getCurrentSlide();
-      var mins = s && s.dataset ? s.dataset.phaseTimer : null;
-      if (!mins){ el.classList.remove('on','hero','mini'); return; }
-
-      var t = Math.round(parseFloat(mins) * 60);
-      /* Only (re)arm on the slide that STARTS the phase, and only while it has
-         not been started yet. Without the state check, stepping back to the
-         first slide mid-discussion would silently wipe the running clock. */
-      if (s.hasAttribute('data-phase-timer-start') && state === 'idle'){
-        total = t; left = t;
-      } else if (!total){
-        total = t; left = t;
+    function stop(){ running = false; clearInterval(tick); tick = null; paint(); }
+    function run(){
+      if (running) return;
+      if (left <= 0){                  /* Start with nothing left reads the box */
+        total = parse(input.value); left = total;
+        if (!total){ input.focus(); input.select(); return; }
       }
-      el.classList.add('on');
-      var hero = s.hasAttribute('data-phase-timer-start');
-      el.classList.toggle('hero', hero);
-      el.classList.toggle('mini', !hero);
+      running = true;
+      tick = setInterval(function(){
+        left--;
+        if (left <= 0){ left = 0; stop(); return; }   /* halt, do not run over */
+        paint();
+      }, 1000);
       paint();
     }
+    function set(secs, andRun){
+      stop(); total = secs; left = secs; input.value = Math.round(secs/60*100)/100; paint();
+      if (andRun) run();
+    }
+    function show(yes){
+      box.hidden = !yes;
+      if (yes){ input.focus(); input.select(); }
+    }
 
-    Reveal.on('ready', sync);
-    Reveal.on('slidechanged', sync);
+    [5, 10, 15, 30].forEach(function(n){
+      var b = document.createElement('button');
+      b.type = 'button'; b.textContent = n; b.title = n + ' minutes';
+      b.onclick = function(){ set(n*60, true); };
+      pre.appendChild(b);
+    });
+    go.onclick = function(){ running ? stop() : run(); };
+    rst.onclick = function(){ stop(); left = total; paint(); };
+    box.querySelector('.dt-x').onclick = function(){ show(false); };
+
+    /* Enter starts the length just typed. Reveal ignores keys aimed at an
+       input, so the digits never reach the deck's navigation. */
+    input.addEventListener('keydown', function(e){
+      if (e.key === 'Enter'){ e.preventDefault(); var s = parse(input.value); if (s) set(s, true); }
+      else if (e.key === 'Escape'){ e.preventDefault(); input.blur(); }
+    });
+
+    function typing(){
+      var a = document.activeElement;
+      return a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable);
+    }
+    /* T toggles. Opening puts the cursor in the length box, so without the
+       first test the next T would count as typing and the panel could never be
+       closed the way it was opened. The exit-ticket word blank is
+       contenteditable, so typing a T into it is left alone. */
+    document.addEventListener('keydown', function(e){
+      if (e.key !== 't' && e.key !== 'T') return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (document.activeElement === input){
+        e.preventDefault(); e.stopPropagation(); input.blur(); show(false); return;
+      }
+      if (typing()) return;
+      e.preventDefault(); e.stopPropagation();
+      show(box.hidden);
+    }, true);
+
+    paint();
   })();
 </script>
 </body>
