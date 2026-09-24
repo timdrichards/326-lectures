@@ -276,13 +276,20 @@ TypeError: Cannot destructure property &#x27;title&#x27;
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
-<h2>Why a <span class="accent">header</span>?</h2>
-<p class="subtitle">One of you said X-Total-Count has no purpose yet. Here is what it is for.</p><pre><code class="language-text" data-trim>
+<h2>Why a <span class="accent">header</span>, and not the JSON?</h2>
+<p class="subtitle">The body is the thing you asked for. Headers are facts about it.</p><div class="left small"><p><strong class="accent">The body is not always JSON.</strong> <code>/entries</code> sends HTML. A header works for any body.</p><p><strong class="accent">The body keeps its shape.</strong> A list stays a list, with no <code>{"entries": ..., "total": 3}</code> wrapper for every client to unpack.</p><p><strong class="accent">Headers can be read alone</strong>, or asked for alone, without the body.</p><p><strong class="accent">Tools know the standard ones.</strong> A browser acts on Content-Type without knowing your data.</p></div><p class="small">A total inside the JSON is also a common, reasonable design. It is a choice, not a rule.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2><span class="accent">HEAD</span>: ask for the headers only</h2>
+<pre><code class="language-text" data-trim>
 $ curl -I localhost:3000/entries
 HTTP/1.1 200 OK
 X-Total-Count: 3
+Content-Type: text/html; charset=utf-8
 Content-Length: 491
-</code></pre><div class="left small"><p><code>curl -I</code> asks for the headers only. The count arrived; the 491-byte page did not.</p><p>That is the job. A page that shows 20 entries at a time can print "Page 1 of 12" from this one number, without the server ever sending all 240 entries.</p></div>
+ETag: W/&quot;1eb-1vdI0qIW1zTgUvgUSf1PuZYyfbI&quot;
+</code></pre><div class="left small"><p><code>curl -I</code> sends a <strong class="accent">HEAD</strong> request. It is GET without the body: the same status and headers, zero bytes of page. Express answers HEAD for every GET route automatically.</p><p>In an app, HEAD is how a program asks about something without downloading it: does this page still exist, how big is this file, has it changed since I last saw it, how many entries are there.</p></div>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
