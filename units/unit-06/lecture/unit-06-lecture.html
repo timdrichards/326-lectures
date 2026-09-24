@@ -277,23 +277,64 @@ TypeError: Cannot destructure property &#x27;title&#x27;
 
 <section class="light" data-background-color="#F4F6FB">
 <h2>Why a <span class="accent">header</span>?</h2>
-<p class="subtitle">One of you said X-Total-Count has no purpose. For now, fair.</p><pre><code class="language-javascript" data-trim>
-// Unit 08: the page asks for 20 entries, and
-// learns there are 240 without receiving them
-const res = await fetch(&#x27;/entries?page=1&#x27;);
-const total = Number(res.headers.get(&#x27;X-Total-Count&#x27;));
-// &quot;Page 1 of 12&quot;   (240 / 20)
-</code></pre><p class="small left">The header is how a client says "page 1 of 12" without downloading all 240. Every header value arrives as text, hence <code>Number(...)</code>.</p>
+<p class="subtitle">One of you said X-Total-Count has no purpose yet. Here is what it is for.</p><pre><code class="language-text" data-trim>
+$ curl -I localhost:3000/entries
+HTTP/1.1 200 OK
+X-Total-Count: 3
+Content-Length: 491
+</code></pre><div class="left small"><p><code>curl -I</code> asks for the headers only. The count arrived; the 491-byte page did not.</p><p>That is the job. A page that shows 20 entries at a time can print "Page 1 of 12" from this one number, without the server ever sending all 240 entries.</p></div>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
-<h2>Under and around <span class="accent">HTTP</span></h2>
-<div class="left"><p><strong class="accent">TCP</strong> carries the text. HTTP is what the text says.</p><p><strong class="accent">HTTPS</strong> is the same text, encrypted between the two ends.</p><p><strong class="accent">Status codes and methods</strong> are promises. Nothing forces a server to keep them.</p></div><p class="subtitle">Whether a route keeps its promise is what the activity tests.</p>
+<h2><span class="accent">TCP</span> carries the text</h2>
+<p class="subtitle">Two jobs, two layers.</p><pre><code class="language-text" data-trim>
+$ curl -v localhost:3000/entries
+* Connected to localhost (::1) port 3000
+&gt; GET /entries HTTP/1.1
+&lt; HTTP/1.1 200 OK
+</code></pre><div class="left small"><p><strong class="accent">TCP</strong> is the connection. It gets bytes from one machine to the other, complete and in order. The <code>*</code> line is curl opening it.</p><p><strong class="accent">HTTP</strong> is what those bytes say: the request and response text you read today. It rides on the connection; it does not make it.</p></div>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
-<h2>What to <span class="accent">keep</span> from Unit 06</h2>
-<p class="subtitle">One of you asked what to hold onto. Here are three things.</p><div class="left"><p><strong class="accent">1.</strong> <code>curl -i</code> shows you what was really sent back.</p><p><strong class="accent">2.</strong> The first digit says whose side: 4xx the request, 5xx the server.</p><p><strong class="accent">3.</strong> A method is a contract, and retries depend on it.</p></div>
+<h2><span class="accent">HTTPS</span>: the same text, encrypted</h2>
+<pre><code class="language-text" data-trim>
+$ curl -v https://www.umass.edu/
+* Connected to www.umass.edu (104.18.21.94) port 443
+* SSL connection using TLSv1.3 / ...
+</code></pre><div class="left small"><p>HTTPS is HTTP sent through an encryption layer called TLS. The request and response inside are exactly the text you saw today.</p><p>Anyone between you and the server, on café Wi-Fi or at your provider, sees scrambled bytes, not your password or your page. Only the two ends can read it.</p><p>The certificate is how your browser checks it is talking to the real umass.edu and not an impostor.</p></div>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>A status code is a <span class="accent">promise</span></h2>
+<p class="subtitle">Nothing stops a server from saying 200 when it failed.</p><pre><code class="language-javascript" data-trim>
+res.status(200).json({ error: &#x27;No such entry&#x27; });
+</code></pre><pre><code class="language-text" data-trim>
+$ curl -sf localhost:3000/lie/9 &gt;/dev/null; echo $?
+0
+$ curl -sf localhost:3000/honest/9 &gt;/dev/null; echo $?
+22
+</code></pre><p class="small left"><code>curl --fail</code> reports failure for any 4xx or 5xx. Given a 200 it reports success, whatever the body says. Every client reads the number first, so a server that answers 200 when it failed is lying to every program that trusts it.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>A method is a <span class="accent">promise</span> too</h2>
+<p class="subtitle">GET promises it only reads. Programs act on that promise.</p><pre><code class="language-javascript" data-trim>
+// looks harmless, breaks the promise
+app.get(&#x27;/entries/:id/delete&#x27;, (req, res) =&gt; {
+  entries.splice(req.params.id, 1);
+  res.redirect(&#x27;/entries&#x27;);
+});
+</code></pre><div class="left small"><p>Browsers that preload links, and search engines crawling a site, follow every GET link they find, because GET promises to change nothing.</p><p>Put a delete behind a GET link and a crawler can empty your data without anyone clicking. That is why deleting uses <code>DELETE</code>.</p></div>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Commit this to <span class="accent">memory</span> (1 of 2)</h2>
+<p class="subtitle">Keep all of it conceptually. These details are worth knowing cold.</p><div class="left small"><p>An HTTP message is plain text in a fixed order: a start line, headers, a blank line, then an optional body.</p><p>A request starts with the method, path and version. A response starts with the version, a status code, and a phrase for people.</p><p>The first digit of a status says what happened: 2xx it worked, 3xx look elsewhere, 4xx the request was wrong, 5xx the server failed.</p><p>Know six by heart: 200 OK, 201 Created, 204 No Content, 400 Bad Request, 404 Not Found, 500 Internal Server Error.</p></div>
+</section>
+
+<section class="light" data-background-color="#F4F6FB">
+<h2>Commit this to <span class="accent">memory</span> (2 of 2)</h2>
+<div class="left small"><p>GET only reads, so it is safe to repeat. PUT and DELETE change things but are still safe to repeat. POST is neither.</p><p>Safe to repeat matters because networks drop responses and clients retry. A retried POST can do the thing twice.</p><p>Headers are named pieces of text about the message. Content-Type tells the reader how to parse the body.</p><p>Express writes all of this for you: <code>res.status()</code> sets the code, <code>res.set()</code> adds a header, and <code>res.json()</code> sets Content-Type and sends the body. <code>curl -i</code> shows you what it actually sent.</p></div>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
@@ -306,9 +347,9 @@ Nothing is submitted.</p>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
-<h2>Compare and Share Back</h2>
-<p>Compare with a neighbouring group: what did the two addresses do, why do they behave differently, and which status did each group choose for the repeated delete?</p>
-<p class="small">Now, not before. About five minutes.</p>
+<h2>Questions for the Room</h2>
+<p class="subtitle">One group answers each. Put a hand up.</p>
+<ul><li>What happened the second time you sent <code>DELETE /entries/0</code>? What did <code>X-Total-Count</code> say after each one?</li><li>What happened the second time you sent <code>DELETE /entries/2</code>?</li><li>For the repeated delete, did your group choose <code>404</code> or <code>204</code>, and why?</li></ul>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
