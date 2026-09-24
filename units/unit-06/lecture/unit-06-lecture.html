@@ -309,11 +309,12 @@ $ curl -v https://www.umass.edu/
 <p class="subtitle">Nothing stops a server from saying 200 when it failed.</p><pre><code class="language-javascript" data-trim>
 res.status(200).json({ error: &#x27;No such entry&#x27; });
 </code></pre><pre><code class="language-text" data-trim>
-$ curl -sf localhost:3000/lie/9 &gt;/dev/null; echo $?
-0
-$ curl -sf localhost:3000/honest/9 &gt;/dev/null; echo $?
-22
-</code></pre><p class="small left"><code>curl --fail</code> reports failure for any 4xx or 5xx. Given a 200 it reports success, whatever the body says. Every client reads the number first, so a server that answers 200 when it failed is lying to every program that trusts it.</p>
+$ curl --fail localhost:3000/lie/9
+{&quot;error&quot;:&quot;No such entry&quot;}
+
+$ curl --fail localhost:3000/honest/9
+curl: (22) The requested URL returned error: 404
+</code></pre><p class="small left"><code>--fail</code> tells curl to treat any 4xx or 5xx as a failure. The 200 route sails through as a success, error message and all. Every client reads the number first, so a server that answers 200 when it failed is lying to every program that trusts it.</p>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
