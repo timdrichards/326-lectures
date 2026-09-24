@@ -314,115 +314,58 @@
 </section>
 
 <section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>Express Was Hiding HTTP</h2>
-<p class="subtitle">Unit 05 wrote res.status(201) without asking what a status is.</p><div class="left"><p><strong class="accent">HTTP is plain text with a fixed shape.</strong></p><p><strong class="accent">The status code is how a program knows what happened.</strong></p><p><strong class="accent">Browser, curl, phone app: none of them know it is Express.</strong></p></div><pre><code class="language-text" data-trim>
-&gt; GET /entries HTTP/1.1
-&lt; HTTP/1.1 200 OK
-&lt; X-Total-Count: 3
-</code></pre>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>What Unit 06 Covered</h2>
-<div class="left recap"><p><strong class="accent">The starting problem</strong></p><p><strong class="accent">Watching the wire</strong></p><p><strong class="accent">The parts of a message</strong></p><p><strong class="accent">Methods</strong></p><p><strong class="accent">Status codes as a vocabulary</strong></p><p><strong class="accent">Headers carry metadata</strong></p><p><strong class="accent">Seeing it in the browser</strong></p><p><strong class="accent">Naming the pattern</strong></p></div>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>The starting problem</h2>
-<p class="subtitle">"It did not work" is not enough to go on.</p><div class="left"><p>400, 404 and 500 already say most of what went wrong, and where to look.</p><p>Until now everything went through req.params, req.body and res.json(), which hide the actual request and response.</p></div>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>Watching the wire</h2>
-<p class="subtitle">curl -v prints the conversation.</p><pre><code class="language-bash" data-trim>
-curl -v http://localhost:3000/entries \
-  -o /dev/null
-</code></pre><div class="left small"><p><code>*</code> curl's own notes &nbsp; <code>&gt;</code> the request &nbsp; <code>&lt;</code> the response &nbsp; <code>{</code> the body arriving</p></div>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>The parts of a message</h2>
-<p class="subtitle">Request and response have the same shape.</p><pre><code class="language-text" data-trim>
-HTTP/1.1 200 OK                  &lt;- status line
-Content-Type: text/html          &lt;- headers
-X-Total-Count: 3
-                                 &lt;- blank line
-&lt;!doctype html&gt; ...              &lt;- body
-</code></pre>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>Methods</h2>
-<p class="subtitle">A method is a contract, not just a verb.</p><pre><code class="language-text" data-trim>
-GET     safe   idempotent
-PUT            idempotent
-DELETE         idempotent
-POST           neither
-</code></pre><p class="small left">Safe: only reads. Idempotent: sending it twice leaves the same state as once.</p>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>Status codes as a vocabulary</h2>
-<p class="subtitle">The first digit names the category.</p><pre><code class="language-text" data-trim>
-2xx  it worked          200, 201, 204
-3xx  go somewhere else   302
-4xx  fix the request     400, 404
-5xx  fix the server      500
-</code></pre>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>Headers carry metadata</h2>
-<p class="subtitle">Information about the body, sent beside it.</p><pre><code class="language-javascript" data-trim>
-res.set(&#x27;X-Total-Count&#x27;, entries.length);
-const accept = req.get(&#x27;Accept&#x27;);
-</code></pre>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>Seeing it in the browser</h2>
-<p class="subtitle">DevTools, Network tab, reload.</p><div class="left"><p>Every request the page made is a row: method, status, type, size, time.</p><p>Click one for its Headers panel, the same headers curl printed.</p></div>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
-<h2>Naming the pattern</h2>
-<p class="subtitle">Networks fail, so clients retry.</p><div class="left"><p>A lost response leaves the client unsure whether the request happened.</p><p><strong class="accent">Retrying an idempotent request is harmless. Retrying a POST can do the thing twice.</strong></p><p>Whether a route keeps the contract depends on how it decides what it is acting on. You test that today.</p></div>
-</section>
-
-<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
 <h2>What the Reading Check Showed</h2>
-<ul><li>Which status code the client receives when a handler never sets one</li><li>Where a count belongs when a client should not have to download the whole list</li></ul>
+<ul><li>No status set, what does the client get? <strong>38 of 47 said 200</strong>, which is right. Six said 204, three said there would be no status line.</li><li>Where should a count go? <strong>41 of 47 said a response header</strong>, which is right.</li><li><strong>Status codes, live, from about eight of you.</strong> 201 against 200, and what a 500 actually looks like.</li><li><strong>What a header is for, from seven.</strong> Including one fair argument that X-Total-Count has no purpose at all.</li><li><strong>HTTPS, TCP, and whether a server can lie, from five.</strong></li></ul>
 </section>
 
-<section>
-<h2>There is <span class="accent">always</span> a status</h2>
-<p class="subtitle">Not setting one still sends one.</p><pre><code class="language-javascript" data-trim>
-res.json(entry);
-// HTTP/1.1 200 OK
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>201 and 200: <span class="accent">same body</span></h2>
+<p class="subtitle">Only the first line differs. That line is what a program reads.</p><pre><code class="language-text" data-trim>
+$ curl -i -X POST localhost:3000/entries ...
+HTTP/1.1 201 Created
+Content-Type: application/json; charset=utf-8
 
-res.status(201).json(newEntry);
-// HTTP/1.1 201 Created
-</code></pre><p class="small left">Set it even for the success case, so the next reader does not have to know the default.</p>
-</section>
+{&quot;title&quot;:&quot;From curl&quot;,&quot;body&quot;:&quot;Hello&quot;}
 
-<section>
-<h2>The count goes <span class="accent">in a header</span></h2>
-<p class="subtitle">Outside the body, so nobody parses the list to get it.</p><pre><code class="language-javascript" data-trim>
-app.get(&#x27;/entries&#x27;, (req, res) =&gt; {
-  res.set(&#x27;X-Total-Count&#x27;, entries.length);
-  res.status(200).render(&#x27;entries&#x27;,
-    { title: &#x27;My Notes&#x27;, entries });
-});
-</code></pre><pre><code class="language-text" data-trim>
-$ curl -i http://localhost:3000/entries
+# the same route, with res.status(201) removed:
 HTTP/1.1 200 OK
-X-Total-Count: 3
+Content-Type: application/json; charset=utf-8
+
+{&quot;title&quot;:&quot;From curl&quot;,&quot;body&quot;:&quot;Hello&quot;}
 </code></pre>
 </section>
 
-<section>
-<h2>4xx or 5xx: <span class="accent">whose problem is it?</span></h2>
-<div class="left"><p><strong class="accent">400</strong> the request was malformed or missing something.</p><p><strong class="accent">404</strong> there is nothing at that address.</p><p><strong class="accent">500</strong> the request was fine and the server failed, often an exception nobody caught.</p></div><p class="subtitle">Sending a 4xx again unchanged will not help. A 5xx is yours to fix.</p>
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>What a <span class="accent">500</span> looks like</h2>
+<p class="subtitle">The status says whose side. The terminal says what.</p><pre><code class="language-text" data-trim>
+$ curl -i -X POST localhost:3000/entries ...
+HTTP/1.1 500 Internal Server Error
+
+# and in the server&#x27;s own terminal:
+TypeError: Cannot destructure property &#x27;title&#x27;
+  of &#x27;req.body&#x27; as it is undefined.
+</code></pre>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>Why a <span class="accent">header</span>?</h2>
+<p class="subtitle">One of you said X-Total-Count has no purpose. For now, fair.</p><pre><code class="language-javascript" data-trim>
+// Unit 08: the page asks for 20 entries, and
+// learns there are 240 without receiving them
+const res = await fetch(&#x27;/entries?page=1&#x27;);
+const total = Number(res.headers.get(&#x27;X-Total-Count&#x27;));
+// &quot;Page 1 of 12&quot;   (240 / 20)
+</code></pre><p class="small left">The header is how a client says "page 1 of 12" without downloading all 240. Every header value arrives as text, hence <code>Number(...)</code>.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>Under and around <span class="accent">HTTP</span></h2>
+<div class="left"><p><strong class="accent">TCP</strong> carries the text. HTTP is what the text says.</p><p><strong class="accent">HTTPS</strong> is the same text, encrypted between the two ends.</p><p><strong class="accent">Status codes and methods</strong> are promises. Nothing forces a server to keep them.</p></div><p class="subtitle">Whether a route keeps its promise is what the activity tests.</p>
+</section>
+
+<section class="light" data-background-color="#F4F6FB" data-phase-timer="30">
+<h2>What to <span class="accent">keep</span> from Unit 06</h2>
+<p class="subtitle">Three of you asked what to hold onto. Three things.</p><div class="left"><p><strong class="accent">1.</strong> <code>curl -i</code> shows you what was really sent back.</p><p><strong class="accent">2.</strong> The first digit says whose side: 4xx the request, 5xx the server.</p><p><strong class="accent">3.</strong> A method is a contract, and retries depend on it.</p></div>
 </section>
 
 <section class="light" data-background-color="#F4F6FB">
@@ -480,7 +423,7 @@ data-placeholder="click to type"></span></p>
 <section>
 <div class="bars"><div></div><div></div><div></div></div>
 <h2>Looking Ahead</h2>
-<p>Unit 07, Living with Asynchrony, is Tuesday. Every request today finished instantly because the entries live in memory. Real servers read files and call other servers, all of which take time, and Unit 07 asks what a route does while it waits.</p>
+<p>Unit 07, Living with Asynchrony, is next. Every request today finished instantly because the entries live in memory. Real servers read files and call other servers, all of which take time, and Unit 07 asks what a route does while it waits. Read it before Tuesday either way.</p>
 </section>
 
 </div>
